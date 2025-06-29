@@ -1,0 +1,29 @@
+<#@ template language="C#" #>
+<#@ output extension=".asm" #>
+<#@ include file="Includes\InitializeMacroAssember.ttinclude" #>
+<#@ include file="Includes\IncludeMainBuildFiles.ttinclude" #>
+<#@ include file="Includes\ConfigureMods.ttinclude" #>
+    ;
+    ;                      JJJJ   OOO   U   U   SSSS  TTTTT
+    ;                         J  O   O  U   U  S        T
+    ;                         J  O   O  U   U   SSS     T
+    ;                     J   J  O   O  U   U      S    T
+    ;                      JJJ    OOO    UUU   SSSS     T
+    ;
+    ;       GAME DESIGNER; JOHN NEWCOMER
+    ;       MAIN PROGRAMMER; BILL PFUTZENREUTER
+    ;       OTHER PROGRAMMERS; CARY KOLKER
+    ;                          KEN LANTZ
+    ;       STARTED PROGRAMMING; FEB 10, 1982
+    ;
+    ;       Source code rewrite by SynaMax, started 01/25/2024
+    ;       Complete ROM set built for the first time on 01/29/2024.
+    ;       Significant rewrite by Eric J. Peters starting on 06/29/2025.
+    ;
+<# 
+    InitializeMacroAssembler(); 
+    IncludeMainBuildFiles();
+    ConfigureMods();
+#>
+
+    END

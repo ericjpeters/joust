@@ -1,0 +1,175 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="echo &quot;Building...&quot;&#xD;&#xA;call Build\Burn.bat&#xD;&#xA;echo &quot;Complete!&quot;&#xD;&#xA;" />
+  </Target>
+
+  <ItemGroup>
+    <None Update="Source\att.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>att.tt</DependentUpon>
+    </None>
+    <None Update="Source\att.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>att.asm</LastGenOutput>
+    </None>
+    <None Update="Source\decoder_roms.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>decoder_roms.tt</DependentUpon>
+    </None>
+    <None Update="Source\decoder_roms.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>decoder_roms.asm</LastGenOutput>
+    </None>
+    <None Update="Source\ejp.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ejp.tt</DependentUpon>
+    </None>
+    <None Update="Source\equ.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>equ.tt</DependentUpon>
+    </None>
+    <None Update="Source\equ.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>equ.asm</LastGenOutput>
+    </None>
+    <None Update="Source\jousti.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>jousti.tt</DependentUpon>
+    </None>
+    <None Update="Source\jousti.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>jousti.asm</LastGenOutput>
+    </None>
+    <None Update="Source\joustrv4.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>joustrv4.tt</DependentUpon>
+    </None>
+    <None Update="Source\joustrv4.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>joustrv4.asm</LastGenOutput>
+    </None>
+    <None Update="Source\joust_mods.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>joust_mods.tt</DependentUpon>
+    </None>
+    <None Update="Source\joust_mods.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>joust_mods.asm</LastGenOutput>
+    </None>
+    <None Update="Source\InitializeMacroAssember.ttinclude">
+    </None>
+    <None Update="Source\make.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>make.tt</DependentUpon>
+    </None>
+    <None Update="Source\make.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>make.asm</LastGenOutput>
+    </None>
+    <None Update="Source\message.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>message.tt</DependentUpon>
+    </None>
+    <None Update="Source\message.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>message.asm</LastGenOutput>
+    </None>
+    <None Update="Source\messequ.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>messequ.tt</DependentUpon>
+    </None>
+    <None Update="Source\messequ.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>messequ.asm</LastGenOutput>
+    </None>
+    <None Update="Source\messequ2.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>messequ2.tt</DependentUpon>
+    </None>
+    <None Update="Source\messequ2.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>messequ2.asm</LastGenOutput>
+    </None>
+    <None Update="Source\phrase.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>phrase.tt</DependentUpon>
+    </None>
+    <None Update="Source\phrase.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>phrase.asm</LastGenOutput>
+    </None>
+    <None Update="Source\ejp.tt">
+      <LastGenOutput>ejp.asm</LastGenOutput>
+      <Generator>TextTemplatingFileGenerator</Generator>
+    </None>
+    <None Update="Source\ramdef.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ramdef.tt</DependentUpon>
+    </None>
+    <None Update="Source\ramdef.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ramdef.asm</LastGenOutput>
+    </None>
+    <None Update="Source\system.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>system.tt</DependentUpon>
+    </None>
+    <None Update="Source\system.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>system.asm</LastGenOutput>
+    </None>
+    <None Update="Source\t12rev3.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>t12rev3.tt</DependentUpon>
+    </None>
+    <None Update="Source\t12rev3.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>t12rev3.asm</LastGenOutput>
+    </None>
+    <None Update="Source\tb12rev3.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>tb12rev3.tt</DependentUpon>
+    </None>
+    <None Update="Source\tb12rev3.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>tb12rev3.asm</LastGenOutput>
+    </None>
+    <None Update="Source\vsndrm4.asm">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>vsndrm4.tt</DependentUpon>
+    </None>
+    <None Update="Source\vsndrm4.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>vsndrm4.asm</LastGenOutput>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+
+</Project>
