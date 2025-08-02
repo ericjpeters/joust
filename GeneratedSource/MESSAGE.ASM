@@ -1,3 +1,4 @@
+
 ;       NAM     MESSAGE BLOCK OUTPUT ROUTINES AND DATA
 ;********       NLIST
 ;       INCLUDE RAMDEF.ASM                                      ;;Fixme was: INCLUDE RAMDEF.SRC  (All of these are already in TB12)
@@ -25,7 +26,7 @@ XSIZE   EQU     DES+2   ;HORIZONTAL SIZE (X-SIZE)
 YSIZE   EQU     XSIZE+1 ;VERTICAL SIZE (Y-SIZE)
 
 
-        ORG     MESS    ;START AT THE ADDRESS SPECIFIED ABOVE
+        ORG     MessagesModuleRam    ;START AT THE ADDRESS SPECIFIED ABOVE
         JMP     CHROUT  ;JUMP TO THE CHARACTER OUTPUT ROUTINE
         JMP     PHROUT  ;JUMP TO THE PHRASE OUTPUT ROUTINE
         JMP     BCDOUT  ;JUMP TO THE B.C.D. OUTPUT ROUTINE
@@ -1180,12 +1181,10 @@ ENDADR  EQU     *               ;LAST ABSOLUTE ADDRESS
 MESSLEN EQU     *-MESS          ;NUMBER OF BYTES THE MODULE USES                ;;Fixme was: LENGTH (symbol already defined)
 
     ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
-    IF (* - MessagesModuleRamEnd) > 0
-        ERROR "\a The module is too large to fit in the current address space.  [ MessagesModuleRam: $\{MessagesModuleRam} - $\{MessagesModuleRamEnd} = $\{MessagesModuleRamEnd - MessagesModuleRam} vs. actual of $\{* - MessagesModuleRam} ($\{* - MessagesModuleRamEnd} bytes too large) ]"
-    ENDIF
-    IF (* - MessagesModuleRamEnd) = 0
-        MESSAGE "\a The module is precisely sized to the current address space.  [ MessagesModuleRam: $\{MessagesModuleRam} - $\{MessagesModuleRamEnd} = $\{MessagesModuleRamEnd - MessagesModuleRam} vs. actual of $\{* - MessagesModuleRam} ]"
-    ENDIF
-    IF (* - MessagesModuleRamEnd) < 0
-        WARNING "\a The module is smaller than the current address space.  [ MessagesModuleRam: $\{MessagesModuleRam} - $\{MessagesModuleRamEnd} = $\{MessagesModuleRamEnd - MessagesModuleRam} vs. actual of $\{* - MessagesModuleRam} ($\{MessagesModuleRamEnd - *} bytes unused) ]"
+    IF (* < (MessagesModuleRamEnd + 1))
+        WARNING "\a The module is smaller than the current address space.  [ MessagesModuleRam: $\{MessagesModuleRam} -> $\{MessagesModuleRamEnd} => max $\{(MessagesModuleRamEnd - MessagesModuleRam) + 1} bytes allowed vs. actual of $\{* - MessagesModuleRam} bytes used ($\{(MessagesModuleRamEnd - *) + 1} bytes unused) ]"
+    ELSEIF (* = (MessagesModuleRamEnd + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ MessagesModuleRam: $\{MessagesModuleRam} -> $\{MessagesModuleRamEnd} => $\{MessagesModuleRamEnd - MessagesModuleRam + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ MessagesModuleRam: $\{MessagesModuleRam} -> $\{MessagesModuleRamEnd} => $\{(MessagesModuleRamEnd - MessagesModuleRam) + 1} bytes expected vs. actual of $\{(* - MessagesModuleRam) + 1} bytes ($\{* - MessagesModuleRamEnd} bytes too large) ]"
     ENDIF

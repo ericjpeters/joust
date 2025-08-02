@@ -42,39 +42,39 @@ NAPGO   MACRO   TIME,ADDR
 ;*
 ;*      SYSTEM VECTORED SUBROUTINES
 ;*
-        ORG     SystemVectors
-VINIT2  RMB     9       ;STANDARD OVERHEAD VECTORS
-VCRPROC RMB     3       ;CREATE A PROCESS
-VKLPROC RMB     3       ;KILL A PROCESS
-VSUCIDE RMB     3       ;KILL SELF PROCESS
-VNAPTIM RMB     3       ;NAP ENTERANCE
-VDCOLOR RMB     3       ;LOAD COLOR RAM ADDR OF COLORS
-VRAND   RMB     3       ;RANDOM NUMBER GENERATOR
-VCL1ALL RMB     3       ;ALLOCATE DMA AREA FOR ERASE OPERATION
-VWR1ALL RMB     3       ;ALLOCATE DMA AREA FOR WRITE OPERATION
-VCL1CLS RMB     3       ;ALLOCATE & FLAVOR AREA FOR 1 ERASE OPERATION
-VWR1CLS RMB     3       ;ALLOCATE & FLAVOR AREA FOR 1 WRITE OPERATION
-VCL2CLS RMB     3       ;ALLOCATE & FLAVOR AREA FOR 2 ERASE OPERATION
-VWR2CLS RMB     3       ;ALLOCATE & FLAVOR AREA FOR 2 WRITE OPERATION
-VSND    RMB     3       ;SOUND ROUTINE, INPUT REG.X AS SOUND TABLE ADDRESS
-VCUPROC RMB     3       ;CREATE A PROCESS, AFTER REG.U PROCESS
-VCOLOR1 RMB     2       ;ADDRESS OF COLOR TABLET
-VLAVA   RMB     2       ;LAVA PROCESS, (NEEDS TO READ SCREEN)
-VNAPTPC RMB     3       ;NAP VIA A JSR ENTERANCE
-VNEWCL5 RMB     3       ;THE NEW CLIF5 UN-COMPACTOR ROUTINE
+;        ORG     SystemVectors
+;VINIT2  RMB     9       ;STANDARD OVERHEAD VECTORS
+;VCRPROC RMB     3       ;CREATE A PROCESS
+;VKLPROC RMB     3       ;KILL A PROCESS
+;VSUCIDE RMB     3       ;KILL SELF PROCESS
+;VNAPTIM RMB     3       ;NAP ENTERANCE
+;VDCOLOR RMB     3       ;LOAD COLOR RAM ADDR OF COLORS
+;VRAND   RMB     3       ;RANDOM NUMBER GENERATOR
+;VCL1ALL RMB     3       ;ALLOCATE DMA AREA FOR ERASE OPERATION
+;VWR1ALL RMB     3       ;ALLOCATE DMA AREA FOR WRITE OPERATION
+;VCL1CLS RMB     3       ;ALLOCATE & FLAVOR AREA FOR 1 ERASE OPERATION
+;VWR1CLS RMB     3       ;ALLOCATE & FLAVOR AREA FOR 1 WRITE OPERATION
+;VCL2CLS RMB     3       ;ALLOCATE & FLAVOR AREA FOR 2 ERASE OPERATION
+;VWR2CLS RMB     3       ;ALLOCATE & FLAVOR AREA FOR 2 WRITE OPERATION
+;VSND    RMB     3       ;SOUND ROUTINE, INPUT REG.X AS SOUND TABLE ADDRESS
+;VCUPROC RMB     3       ;CREATE A PROCESS, AFTER REG.U PROCESS
+;VCOLOR1 RMB     2       ;ADDRESS OF COLOR TABLET
+;VLAVA   RMB     2       ;LAVA PROCESS, (NEEDS TO READ SCREEN)
+;VNAPTPC RMB     3       ;NAP VIA A JSR ENTERANCE
+;VNEWCL5 RMB     3       ;THE NEW CLIF5 UN-COMPACTOR ROUTINE
 ;*
 GAMORG  EQU     $5ED0
-        ORG     GAMORG
-VPWRUP  RMB     3       ;POWER UP VECTOR FROM SYSTEM.SRC TO JOUST.SRC
-VATTRT  RMB     3       ;ATTRACT MODE FOR THE GAME, (FOR H.S.T.D.)
-VGSTART RMB     2       ;GAME START PUSH BUTTONS
-VCREDIT RMB     3       ;VECTOR FOR ANY CREDIT CHANGES
-VSNHIGH RMB     2       ;H.S.T.D. SOUND ADDRESS
-VHSTD   RMB     3       ;DISPLAY H.S.T.D.'S
-VDCRED  RMB     3       ;VECTOR TO DISPLAY CREDIT CHANGES
-VSIM    RMB     3       ;GAME SIMULATION OR INSTRUCTIONAL PAGE START
-VDCRE2  RMB     3       ;VECTOR TO DISPLAY CREDIT CHANGES (VARIABLE BACKGROUND)
-VNULL   RMB     2       ;ADDRESS OF NULL COLOR RAM BLOCK
+;        ORG     GAMORG
+;VPowerUpHandler  RMB     3       ;POWER UP VECTOR FROM SYSTEM.SRC TO JOUST.SRC
+;VATTRT  RMB     3       ;ATTRACT MODE FOR THE GAME, (FOR H.S.T.D.)
+;VGSTART RMB     2       ;GAME START PUSH BUTTONS
+;VCREDIT RMB     3       ;VECTOR FOR ANY CREDIT CHANGES
+;VSNHIGH RMB     2       ;H.S.T.D. SOUND ADDRESS
+;VHSTD   RMB     3       ;DISPLAY H.S.T.D.'S
+;VDCRED  RMB     3       ;VECTOR TO DISPLAY CREDIT CHANGES
+;VSIM    RMB     3       ;GAME SIMULATION OR INSTRUCTIONAL PAGE START
+;VDCRE2  RMB     3       ;VECTOR TO DISPLAY CREDIT CHANGES (VARIABLE BACKGROUND)
+;VNULL   RMB     2       ;ADDRESS OF NULL COLOR RAM BLOCK
 ;*
 ;*      PROGRAMS OBJECT DEFINITIONS
 ;*
@@ -134,13 +134,13 @@ PIAA    EQU     $C80C   ;COIN DOOR,INTERRUPT,SOUND BRD PIA'S
 CPIAA   EQU     $C80D   ;16MS CONTROL - CA1
 PIAB    EQU     $C80E   ;SOUND BOARD OUTPUTS
 CPIAB   EQU     $C80F   ;4MS CONTROL - CB1      B0=1 ENABLE  B0=0 DISABLE
-;*WDOG  EQU     $CBFF   ;WATCHDOG CIRCUIT
+;*WatchdogTimer  EQU     $CBFF   ;WATCHDOG CIRCUIT
 DMA     EQU     $CA00   ;DMA CONTROL WORDS
-KDMA    EQU     DMA+1   ; CONSTANT SUBSTITUTION
-SDMA    EQU     DMA+2   ; SOURCE OF CHARACTER
-DDMA    EQU     DMA+4   ; DESTINATION OF CHARACTER
-WDMA    EQU     DMA+6   ; HORIZONTAL WIDTH (BIT 2 INVERTED)
-HDMA    EQU     DMA+7   ; VERTICAL HEIGHT (BIT 2 INVERTED)
+DmaConstantSubstitution    EQU     DMA+1   ; CONSTANT SUBSTITUTION
+DmaSourceOfCharacter    EQU     DMA+2   ; SOURCE OF CHARACTER
+DmaDestinationOfCharacter    EQU     DMA+4   ; DESTINATION OF CHARACTER
+DmaHorizontalWidth    EQU     DMA+6   ; HORIZONTAL WIDTH (BIT 2 INVERTED)
+DmaVerticalHeight    EQU     DMA+7   ; VERTICAL HEIGHT (BIT 2 INVERTED)
 ;*DMAFIX        EQU     $0404   ;DMA X,Y LENGTH BIT 2 INVERSION FOR CURRENT DMA FIX
         ORG     0
 WCDMA   RMB     1       ;WRITE/CLEAR'S DMA CONTROL BYTE
@@ -166,6 +166,7 @@ WCLENY  RMB     1       ;WRITE/CLEAR'S DMA Y LENGTH (NO INVERSION)
 ;*      SYSTEM OVERHEAD EQUATES
 ;*
 PBLKM   EQU     40      ;NUMBER OF MAXIMUM PROCESSES THAT CAN EXIST
+
         ORG     $0      ;PROCESS BLOCK OFFSETS
 PLINK   RMB     2       ;PROCESS OVERHEAD, LINK TO NXT PROC (IF=0 END LINK)
 PID     RMB     1       ;   "      "      I.D. NBR (IF=0 NO PROCESS)
@@ -184,48 +185,48 @@ PBLKL   EQU     *               ;8 OVERHEAD BYTES + PROCESSES EXCLUSIVE RAM
 ;*
 ;*      JOUST OFFSETS
 ;*
-        ORG     PRAM            ;NEW OFFSETS FROM PROCESSES RAM
-PDECSN  RMB     2               ;JOYSTICK,SCORE, AND OTHER DECISION AREA
-PFACE   RMB     1               ;0=RIGHT FACED, <>0=LEFT FACE
-PFRAME  RMB     1               ;MAJOR FRAME ANIMATION NUMBER
-PVELY   RMB     2               ;FACTIONAL SIGNED VELOCITY Y-DIRECTION
-PTIMUP  RMB     1               ;TIME BETWEEN WING FLAPS
-PVELX   RMB     1               ;TABLE LOOK-UP FLYING VELOCITY-X
-PACCX   RMB     1               ;LAND'S ACCELERATION RATE
-PTIMX   RMB     1               ;LAND'S TIME TILL NEXT FRAME
-PIMAGE  RMB     1               ;PICTURES FRAME NUMBER
-PHORSE  RMB     2               ;START ANIMATION OF HORSE(OSTRICH)
-PRIDER  RMB     2               ;START ANIMATION OF RIDER
-PPICH   RMB     2               ;PROCESSES LAST/CURRENT HORSE IMAGE PICTURE
-PPICR   RMB     2               ;PROCESSES LAST/CURRENT RIDER IMAGE PICTURE
-PSTATE  RMB     2               ;STATE OF PLAYER'S GROUND MOVEMENT (ADDRESS)
-PBUMPX  RMB     1               ;BUMPING DELTA X
-PBUMPY  RMB     1               ;BUMP REGISTER IN Y DIRECTION
-PJOY    RMB     2               ;JOYSTICK SERVICE ROUTINE
-PLANTZ  RMB     1               ;LANTZ OFFSET FOR SKIDDING
-PCOLY1  RMB     1               ;COLISION DETECTS BOTTOM LINE OF ROUGH BOX
-PCOLY2  RMB     1               ;COLISION DETECTS TOP LINE OF ROUGH BOX
-PCOLX   RMB     2               ;COLISION DETECT RIGHT HAND SIDE OF COLISION
-PDIST   RMB     2               ;ENEMY TRAGET DISTANCES (FOR EMEMY TRACKING)
-PJOYT   RMB     1               ;FLIP/FLAP TIMES (FOR EMEMY TRACKING)
-PRDIR   RMB     1               ;REVERSE DIRECTION COUNTER (FOR EMEMY TRACKING)
-PPVELX  RMB     1               ;OLD PLAYERS X VELOCITY (FOR EMEMY TRACKING)
-PADGRA  RMB     2               ;ADD GRAVITY ROUTINE (FLYING & LAVA TROLLS)
-PLAVT   RMB     1               ;LAVA TROLL LOOKING TIME (FOR ENEMY TRACKING)
-PEGG    RMB     1               ;EMEMIES NBR OF EGGS LEFT BEFORE TOTAL DEATH
-PCHASE  RMB     1               ;ENEMIES CHASE (=1) OR NON-CHASE (=0) FLAG
-PFEET   RMB     1               ;L.S.BIT INDICATES WHICH FOOT HORSE IS ON.
-PNBR    EQU     *               ;NUMBER OF PROCESS RAM LOCATIONS
+            ORG     PRAM            ; NEW OFFSETS FROM PROCESSES RAM
+PDECSN      RMB     2               ; JOYSTICK,SCORE, AND OTHER DECISION AREA
+PFACE       RMB     1               ; 0=RIGHT FACED, <>0=LEFT FACE
+PFRAME      RMB     1               ; MAJOR FRAME ANIMATION NUMBER
+PVELY       RMB     2               ; FACTIONAL SIGNED VELOCITY Y-DIRECTION
+PTIMUP      RMB     1               ; TIME BETWEEN WING FLAPS
+PVELX       RMB     1               ; TABLE LOOK-UP FLYING VELOCITY-X
+PACCX       RMB     1               ; LAND'S ACCELERATION RATE
+PTIMX       RMB     1               ; LAND'S TIME TILL NEXT FRAME
+PIMAGE      RMB     1               ; PICTURES FRAME NUMBER
+PHORSE      RMB     2               ; START ANIMATION OF HORSE(OSTRICH)
+PRIDER      RMB     2               ; START ANIMATION OF RIDER
+PPICH       RMB     2               ; PROCESSES LAST/CURRENT HORSE IMAGE PICTURE
+PPICR       RMB     2               ; PROCESSES LAST/CURRENT RIDER IMAGE PICTURE
+PSTATE      RMB     2               ; STATE OF PLAYER'S GROUND MOVEMENT (ADDRESS)
+PBUMPX      RMB     1               ; BUMPING DELTA X
+PBUMPY      RMB     1               ; BUMP REGISTER IN Y DIRECTION
+PJOY        RMB     2               ; JOYSTICK SERVICE ROUTINE
+PLANTZ      RMB     1               ; LANTZ OFFSET FOR SKIDDING
+PCOLY1      RMB     1               ; COLISION DETECTS BOTTOM LINE OF ROUGH BOX
+PCOLY2      RMB     1               ; COLISION DETECTS TOP LINE OF ROUGH BOX
+PCOLX       RMB     2               ; COLISION DETECT RIGHT HAND SIDE OF COLISION
+PDIST       RMB     2               ; ENEMY TRAGET DISTANCES (FOR EMEMY TRACKING)
+PJOYT       RMB     1               ; FLIP/FLAP TIMES (FOR EMEMY TRACKING)
+PRDIR       RMB     1               ; REVERSE DIRECTION COUNTER (FOR EMEMY TRACKING)
+PPVELX      RMB     1               ; OLD PLAYERS X VELOCITY (FOR EMEMY TRACKING)
+PADGRA      RMB     2               ; ADD GRAVITY ROUTINE (FLYING & LAVA TROLLS)
+PLAVT       RMB     1               ; LAVA TROLL LOOKING TIME (FOR ENEMY TRACKING)
+PEGG        RMB     1               ; EMEMIES NBR OF EGGS LEFT BEFORE TOTAL DEATH
+PCHASE      RMB     1               ; ENEMIES CHASE (=1) OR NON-CHASE (=0) FLAG
+PFEET       RMB     1               ; L.S.BIT INDICATES WHICH FOOT HORSE IS ON.
+PNBR        EQU     *               ; NUMBER OF PROCESS RAM LOCATIONS
 
-    ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
-    IF (* - PBLKL) > 0
-        ERROR "\a The module is too large to fit in the current address space.  [ PNBR: $\{PNBR} - $\{PBLKL} = $\{PBLKL - PNBR} vs. actual of $\{* - PNBR} ($\{* - PBLKL} bytes too large) ]"
-    ENDIF
-    IF (* - PBLKL) = 0
-        MESSAGE "\a The module is precisely sized to the current address space.  [ PNBR: $\{PNBR} - $\{PBLKL} = $\{PBLKL - PNBR} vs. actual of $\{* - PNBR} ]"
-    ENDIF
-    IF (* - PBLKL) < 0
-        WARNING "\a The module is smaller than the current address space.  [ PNBR: $\{PNBR} - $\{PBLKL} = $\{PBLKL - PNBR} vs. actual of $\{* - PNBR} ($\{PBLKL - *} bytes unused) ]"
+; not sure what this is really checking.   It doesn't jive with other places where we check address,
+; nor does it seem to match other places where we check the address of PNBR
+;     ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
+    IF (* < (PBLKL + 1))
+        WARNING "\a The module is smaller than the current address space.  [ PNBR: $\{PNBR} -> $\{PBLKL} => max $\{(PBLKL - PNBR) + 1} bytes allowed vs. actual of $\{* - PNBR} bytes used ($\{(PBLKL - *) + 1} bytes unused) ]"
+    ELSEIF (* = (PBLKL + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ PNBR: $\{PNBR} -> $\{PBLKL} => $\{PBLKL - PNBR + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ PNBR: $\{PNBR} -> $\{PBLKL} => $\{(PBLKL - PNBR) + 1} bytes expected vs. actual of $\{(* - PNBR) + 1} bytes ($\{* - PBLKL} bytes too large) ]"
     ENDIF
 
 ;*
@@ -265,14 +266,12 @@ TRSMALL RMB     1       ;NBR WAVES LEFT BEFORE A SMALL SAFTEY TRANSPORTER ZONE
 EGGNBR  RMB     1       ;QUE FOR EGG SCORE(S) TO OVERLAP IN ORDER OF COLLECTION
 
     ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
-    IF (* - BasePage1RamEnd) > 0
-        ERROR "\a The module is too large to fit in the current address space.  [ BasePage1Ram: $\{BasePage1Ram} - $\{BasePage1RamEnd} = $\{BasePage1RamEnd - BasePage1Ram} vs. actual of $\{* - BasePage1Ram} ($\{* - BasePage1RamEnd} bytes too large) ]"
-    ENDIF
-    IF (* - BasePage1RamEnd) = 0
-        MESSAGE "\a The module is precisely sized to the current address space.  [ BasePage1Ram: $\{BasePage1Ram} - $\{BasePage1RamEnd} = $\{BasePage1RamEnd - BasePage1Ram} vs. actual of $\{* - BasePage1Ram} ]"
-    ENDIF
-    IF (* - BasePage1RamEnd) < 0
-        WARNING "\a The module is smaller than the current address space.  [ BasePage1Ram: $\{BasePage1Ram} - $\{BasePage1RamEnd} = $\{BasePage1RamEnd - BasePage1Ram} vs. actual of $\{* - BasePage1Ram} ($\{BasePage1RamEnd - *} bytes unused) ]"
+    IF (* < (BasePage1RamEnd + 1))
+        WARNING "\a The module is smaller than the current address space.  [ BasePage1Ram: $\{BasePage1Ram} -> $\{BasePage1RamEnd} => max $\{(BasePage1RamEnd - BasePage1Ram) + 1} bytes allowed vs. actual of $\{* - BasePage1Ram} bytes used ($\{(BasePage1RamEnd - *) + 1} bytes unused) ]"
+    ELSEIF (* = (BasePage1RamEnd + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ BasePage1Ram: $\{BasePage1Ram} -> $\{BasePage1RamEnd} => $\{BasePage1RamEnd - BasePage1Ram + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ BasePage1Ram: $\{BasePage1Ram} -> $\{BasePage1RamEnd} => $\{(BasePage1RamEnd - BasePage1Ram) + 1} bytes expected vs. actual of $\{(* - BasePage1Ram) + 1} bytes ($\{* - BasePage1RamEnd} bytes too large) ]"
     ENDIF
 
         ORG     BasePage2Ram
@@ -290,7 +289,7 @@ SPLY1   RMB     4+1+1+1 ;PLYR #1 SCORE (4 BCD BYTES),SCORE OCCURED,NBR MEN LEFT
 SPLY2   RMB     4+1+1+1 ;PLYR #2 SCORE (4 BCD BYTES),SCORE OCCURED,NBR MEN LEFT
 ;*                      & AUX NUMBER OF MEN LEFT (FOR EARLY GAME OVER)
         RMB     1+2     ;BCD OFFSET FOR LEVEL PASS, & CURRENT BCD LEVEL TO PASS
-NPLYRS  RMB     1       ;N-1 PLAYERS IN THE GAME
+NumberOfPlayers  RMB     1       ;N-1 PLAYERS IN THE GAME
 STMR    RMB     1       ;TIME LEFT TILL CURRENT SOUND IS COMPLETE
 SPRI    RMB     1       ;LAST PIRORITY SOUND, -1,0,+1 (EASIEST TO HARDEST)
 SNDPTR  RMB     2       ;NEXT SOUND CODE GROUP TO BE SEND TO SOUND BOARD(IF<>0)
@@ -308,17 +307,15 @@ CURTR4  RMB     1       ;IF<>0 THIS TRANSPORTER IS IN USE
 TEMP    RMB     1       ;TEMPORARY LOCATION FOR "WRCLS"
 TARPLY  RMB     2       ;TARGETED PLAYERS WORKSPACE
 TARPL2  RMB     2       ;TARGETED PLAYERS WORKSPACE
-NLIVES  RMB     1       ;NUMBER OF PLAYER 1 & 2 LIVES IN A GAME
+NumberOfLives  RMB     1       ;NUMBER OF PLAYER 1 & 2 LIVES IN A GAME
 
     ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
-    IF (* - BasePage2RamEnd) > 0
-        ERROR "\a The module is too large to fit in the current address space.  [ BasePage2Ram: $\{BasePage2Ram} - $\{BasePage2RamEnd} = $\{BasePage2RamEnd - BasePage2Ram} vs. actual of $\{* - BasePage2Ram} ($\{* - BasePage2RamEnd} bytes too large) ]"
-    ENDIF
-    IF (* - BasePage2RamEnd) = 0
-        MESSAGE "\a The module is precisely sized to the current address space.  [ BasePage2Ram: $\{BasePage2Ram} - $\{BasePage2RamEnd} = $\{BasePage2RamEnd - BasePage2Ram} vs. actual of $\{* - BasePage2Ram} ]"
-    ENDIF
-    IF (* - BasePage2RamEnd) < 0
-        WARNING "\a The module is smaller than the current address space.  [ BasePage2Ram: $\{BasePage2Ram} - $\{BasePage2RamEnd} = $\{BasePage2RamEnd - BasePage2Ram} vs. actual of $\{* - BasePage2Ram} ($\{BasePage2RamEnd - *} bytes unused) ]"
+    IF (* < (BasePage2RamEnd + 1))
+        WARNING "\a The module is smaller than the current address space.  [ BasePage2Ram: $\{BasePage2Ram} -> $\{BasePage2RamEnd} => max $\{(BasePage2RamEnd - BasePage2Ram) + 1} bytes allowed vs. actual of $\{* - BasePage2Ram} bytes used ($\{(BasePage2RamEnd - *) + 1} bytes unused) ]"
+    ELSEIF (* = (BasePage2RamEnd + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ BasePage2Ram: $\{BasePage2Ram} -> $\{BasePage2RamEnd} => $\{BasePage2RamEnd - BasePage2Ram + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ BasePage2Ram: $\{BasePage2Ram} -> $\{BasePage2RamEnd} => $\{(BasePage2RamEnd - BasePage2Ram) + 1} bytes expected vs. actual of $\{(* - BasePage2Ram) + 1} bytes ($\{* - BasePage2RamEnd} bytes too large) ]"
     ENDIF
 
         ORG     BasePage3Ram
@@ -334,7 +331,7 @@ SWDEB   RMB     1       ;DEBOUNCED SWITCHES IN THIER CURRENT STATE
 SWTEMP  RMB     1       ;SWITCH DEBOUNCE TEMPORARY LOCATION
 SWSLAM  RMB     1       ;SLAM SWITCH SLOPPY DEBOUNCE TO DISABLE COIN SWITCHES
 NSMART  RMB     1       ;CURRENT NUMBER OF ATTACKING ENEMIES
-WSMART  RMB     1       ;NUMBER OF ENEMIES THAT SHOULD ATTACK IN A WAVE
+CurrentWave_PersuerCount  RMB     1       ;NUMBER OF ENEMIES THAT SHOULD ATTACK IN A WAVE
 GOVER   RMB     1       ;0=GAME IN PROGRESS, $80=GAME OVER
 COLX    RMB     2       ;DEBUG, COLISION DETECTS REG.X
 COLU    RMB     2       ;DEBUG, COLISION DETECTS REG.U
@@ -367,14 +364,12 @@ CRDCHG  RMB     1       ;NON-ZERO INDICATES A COIN WAS DROPPED INTO COIN SLOT
 SWT0    RMB     9       ;SWITCH DEBOUNCING STATES, T0,T1,T2,...,T8
 
     ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
-    IF (* - BasePage3RamEnd) > 0
-        ERROR "\a The module is too large to fit in the current address space.  [ BasePage3Ram: $\{BasePage3Ram} - $\{BasePage3RamEnd} = $\{BasePage3RamEnd - BasePage3Ram} vs. actual of $\{* - BasePage3Ram} ($\{* - BasePage3RamEnd} bytes too large) ]"
-    ENDIF
-    IF (* - BasePage3RamEnd) = 0
-        MESSAGE "\a The module is precisely sized to the current address space.  [ BasePage3Ram: $\{BasePage3Ram} - $\{BasePage3RamEnd} = $\{BasePage3RamEnd - BasePage3Ram} vs. actual of $\{* - BasePage3Ram} ]"
-    ENDIF
-    IF (* - BasePage3RamEnd) < 0
-        WARNING "\a The module is smaller than the current address space.  [ BasePage3Ram: $\{BasePage3Ram} - $\{BasePage3RamEnd} = $\{BasePage3RamEnd - BasePage3Ram} vs. actual of $\{* - BasePage3Ram} ($\{BasePage3RamEnd - *} bytes unused) ]"
+    IF (* < (BasePage3RamEnd + 1))
+        WARNING "\a The module is smaller than the current address space.  [ BasePage3Ram: $\{BasePage3Ram} -> $\{BasePage3RamEnd} => max $\{(BasePage3RamEnd - BasePage3Ram) + 1} bytes allowed vs. actual of $\{* - BasePage3Ram} bytes used ($\{(BasePage3RamEnd - *) + 1} bytes unused) ]"
+    ELSEIF (* = (BasePage3RamEnd + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ BasePage3Ram: $\{BasePage3Ram} -> $\{BasePage3RamEnd} => $\{BasePage3RamEnd - BasePage3Ram + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ BasePage3Ram: $\{BasePage3Ram} -> $\{BasePage3RamEnd} => $\{(BasePage3RamEnd - BasePage3Ram) + 1} bytes expected vs. actual of $\{(* - BasePage3Ram) + 1} bytes ($\{* - BasePage3RamEnd} bytes too large) ]"
     ENDIF
 
         ORG     BasePage4Ram

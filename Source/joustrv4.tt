@@ -1,6 +1,10 @@
 <#@ template language="C#" #>
 <#@ output extension=".asm" #>
 <#@ include file="Includes\CheckAddress.ttinclude" #>
+<#@ include file="Includes\Structures.ttinclude" #>
+<#@ include file="Includes\BranchOnInput.ttinclude" #>
+<#@ include file="Includes\Watchdog.ttinclude" #>
+
 ;       NAM PFUTZ
 ;       SUBTTL  WILLIAMS 1982, JOUST GAME
 ;*
@@ -106,9 +110,9 @@ TCURUSE RMB     2               ;TRANSPORTER "IN USE" FLAG ADDRESS
         ORG     $0
 DJOY    RMB     2       ;PLAYERS JOYSTICK/DUMB LINE TRACKING ENEMY
 DSMART  RMB     2       ;A SMARTER ENEMY
-DSCORE  RMB     2       ;SCORE RAM LOCATION
-DSCLOC  RMB     2       ;SCORE SCREEN LOCATION
-DSCPLY  RMB     2       ;SCORE'S AREAS IMAGES OF A PERSON SITTING DOWN
+ScoreRamLocation  RMB     2       ;SCORE RAM LOCATION
+ScoreScreenLocation  RMB     2       ;SCORE SCREEN LOCATION
+LivesRemainingScreenLocation  RMB     2       ;SCORE'S AREAS IMAGES OF A PERSON SITTING DOWN
 DPLYR   RMB     2       ;RIDERS IMAGE
 DTREFF  RMB     2       ;TRANSPORTERS COLOR EFFECTS
 DCRE    RMB     2       ;DECISION TO BE RECREATED BY WHOM
@@ -162,12 +166,12 @@ PBAITN  RMB     1       ;WORD OFFSET TO TIME TABLE OF NEXT BAITER SEND OFF
 PBAITS  RMB     1       ;START TIME TABLE;TABLE NUMBER TILL NEXT BAITER SEND OFF
 PWHCH   RMB     1       ;IF >0 A PRE-MATURE HATCHING EGG TO BE CREATED
 PMSGA   RMB     1       ;CURRENT MESSAGE BEING DISPLAYED
-PMSG0   RMB     4       ;MSG FOR WAVE 'XX'
-PMSG1   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
-PMSG2   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
-PMSG3   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
-PMSG4   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
-PMSG5   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
+WaveMessage_Row0   RMB     4       ;MSG FOR WAVE 'XX'
+WaveMessage_Row1   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
+WaveMessage_Row2   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
+WaveMessage_Row3   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
+WaveMessage_Row4   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
+WaveMessage_Row5   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
 
         ; EJP -- Cannot understand why precisely what this is doing.
         IF PNBR-* > 0                                                           ;;Fixme was: IFGT  PNBR-*
@@ -177,30 +181,32 @@ PMSG5   RMB     4       ;MSG NBR & COLOR & SCREEN ADDRESS
 ;*
 ;*      WAVE OFFSETS
 ;*
-        ORG     $0
-WBOUND                  ;NBR OF BOUNDERS IN THIS WAVE (UPPER NIBBLE)
-WHUNT   RMB     1       ;NBR OF HUNTERS IN THIS WAVE (LOWER NIBBLE)
-WLORD                   ;NBR OF SHADOW LORDS IN THIS WAVE (UPPER NIBBLE)
-WPERSUE RMB     1       ;NBR OF PERSUERS IN THIS WAVE (LOWER NIBBLE)
-WPTEN   RMB     1       ;NBR OF PTERODACTYLS IN THIS WAVE
-WSTATUS RMB     1       ;STATUS BYTE FOR THIS WAVE
-WLEN    EQU     *
+                                    ORG     $0
+WaveState_BounderCount                              ;NBR OF BOUNDERS IN THIS WAVE (UPPER NIBBLE)
+WaveState_HunterCount               RMB     1       ;NBR OF HUNTERS IN THIS WAVE (LOWER NIBBLE)
+WaveState_ShadowLordCount                           ;NBR OF SHADOW LORDS IN THIS WAVE (UPPER NIBBLE)
+WaveState_PersuerCount              RMB     1       ;NBR OF PERSUERS IN THIS WAVE (LOWER NIBBLE)
+WaveState_PterodactylCount          RMB     1       ;NBR OF PTERODACTYLS IN THIS WAVE
+WaveState_Status                    RMB     1       ;STATUS BYTE FOR THIS WAVE
+WaveState_Length                    EQU     *
+
 ;*
 ;*      WAVE STATUS BYTE, BIT DEFINITION
 ;*
-WBPER   EQU     $01     ;IF=1, PERSUE WILL BE INSTANTANIOUSLY
-WBJSR0  EQU     $02     ;THESE 3 BITS ARE A JSR TABLE OFFSET
-WBJSR1  EQU     $04     ; (0 = AN NOP, OTHERS ARE 2,4,6,8,10,12,14)
-WBJSR2  EQU     $08
-WBCL1L  EQU     $10     ;IF=1, CLIFF1L IS DISABLED (OR DESTROYED)
-WBCL1R  EQU     $20     ;IF=1, CLIFF1R IS DISABLED (OR DESTROYED)
-WBCL2   EQU     $40     ;IF=1, CLIFF2 IS DISABLED (OR DESTROYED)
-WBCL4   EQU     $80     ;IF=1, CLIFF4 IS DISABLED (OR DESTROYED)
-WBCL1   EQU     WBCL1L+WBCL1R
-WBCL12  EQU     WBCL1+WBCL2
-WBCL14  EQU     WBCL1+WBCL4
-WBCL24  EQU     WBCL4+WBCL2
-WBCLS   EQU     WBCL1+WBCL2+WBCL4
+WaveState_ImmediatePersue           EQU     $01     ;IF=1, PERSUE WILL BE INSTANTANIOUSLY
+WBJSR0                              EQU     $02     ;THESE 3 BITS ARE A JSR TABLE OFFSET
+WBJSR1                              EQU     $04     ; (0 = AN NOP, OTHERS ARE 2,4,6,8,10,12,14)
+WBJSR2                              EQU     $08
+WaveState_Cliff1LeftDestroyed       EQU     $10     ;IF=1, CLIFF1L IS DISABLED (OR DESTROYED)
+WaveState_Cliff1RightDestroyed      EQU     $20     ;IF=1, CLIFF1R IS DISABLED (OR DESTROYED)
+WaveState_Cliff2Destroyed           EQU     $40     ;IF=1, CLIFF2 IS DISABLED (OR DESTROYED)
+WaveState_Cliff4Destroyed           EQU     $80     ;IF=1, CLIFF4 IS DISABLED (OR DESTROYED)
+WaveState_Cliff1BothDestroyed       EQU     WaveState_Cliff1LeftDestroyed + WaveState_Cliff1RightDestroyed
+WaveState_Cliff1BothAnd2Destroyed   EQU     WaveState_Cliff1BothDestroyed + WaveState_Cliff2Destroyed
+WaveState_Cliff1BothAnd4Destroyed   EQU     WaveState_Cliff1BothDestroyed + WaveState_Cliff4Destroyed
+WaveState_Cliff2And4Destroyed       EQU     WaveState_Cliff4Destroyed + WaveState_Cliff2Destroyed
+WaveState_CliffAllDestroyed         EQU     WaveState_Cliff1BothDestroyed + WaveState_Cliff2Destroyed + WaveState_Cliff4Destroyed
+
 ;*
 ;*      DYNAMIC GAME ADJUST TABLE OFFSETS
 ;*
@@ -217,33 +223,36 @@ DYWORD  MACRO START1,START2,START3,INCRE,ENDV,TIM1,TIM2,TIM3
          FDB    START1,START2,START3,ENDV,TIM1,TIM2
          FCB    TIM3,INCRE
         ENDM
-;*
-        ORG     GAMORG
+
+;* *********************************************************************
 ;*
 ;*      THE PROGRAM'S VECTORS
 ;*
-        JMP     ATTRCT          ;POWER UP VECTOR
-        JMP     ATTRC2          ;RETURN HERE AFTER H.S.T.D.
-        FDB     GSTART          ;GAME START BUTTON MONITOR ROUTINE
-        JMP     SCREDIT         ;DISPLAY CURRENT NUMBER OF CREDITS LEFT
-        FDB     SNHIGH          ;HIGH SCORE TO DATES SOUND
-        JMP     HSTD            ;TEMPORARY GO TO H.S.T.D. PAGE
-        JMP     DCREDIT         ;DISPLAY CREDITS
-        JMP     GAMSIM          ;SIMULATION GAME OR INSTRUCTIONAL PAGE
-        JMP     DCRE2           ;DISPLAY CREDITS (VARIABLE BACKGROUND)
-        FDB     NULL            ;COLOR RAM OF ALL ZEROS
+;* *********************************************************************
+                        ORG     GAMORG
+VPowerUpHandler         JMP     ATTRCT          ;POWER UP VECTOR
+VATTRT                  JMP     ATTRC2          ;RETURN HERE AFTER H.S.T.D.
+VGSTART                 FDB     GSTART          ;GAME START BUTTON MONITOR ROUTINE
+VCREDIT                 JMP     SCREDIT         ;DISPLAY CURRENT NUMBER OF CREDITS LEFT
+VSNHIGH                 FDB     SNHIGH          ;HIGH SCORE TO DATES SOUND
+VHSTD                   JMP     HSTD            ;TEMPORARY GO TO H.S.T.D. PAGE
+VDCRED                  JMP     DCREDIT         ;DISPLAY CREDITS
+VSIM                    JMP     GAMSIM          ;SIMULATION GAME OR INSTRUCTIONAL PAGE
+VDCRE2                  JMP     DCRE2           ;DISPLAY CREDITS (VARIABLE BACKGROUND)
+VNULL                   FDB     NULL            ;COLOR RAM OF ALL ZEROS
+
 ;*
 ;*      GAME SIMULATION OR INSTRUCTIONAL PAGE
 ;*
 GAMSIM  LDA     #$7F            ;GAME SIMULATION MODE
         STA     GOVER
         LDA     #3              ;3 LIVES FOR EACH PLAYER
-        STA     NLIVES
-        STA     NPLYRS          ;& 2 PLAYERS
+        STA     NumberOfLives
+        STA     NumberOfPlayers          ;& 2 PLAYERS
         JMP     SIM1A           ;START THE PAGE
 ;*
 SIM2A   CLR     NSMART          ;NO-ONE IS SMART IN THIS GAME!
-        CLR     WSMART
+        CLR     CurrentWave_PersuerCount
 ;*
 ;*      GENERATE BACKGROUND LANDING & COLISION TABLES
 ;*
@@ -639,7 +648,7 @@ GAMOVR  LDA     #$80            ;DISABLE CREDIT DISPLAY PAGE
         PCNAP   8
         PROCCR  GSTART,$48      ;START GAME START SWITCH MONITOR
         JSR     DCREDIT         ;DISPLAY NUMBER OF CREDITS LEFT IN THE GAME
-        CLR     WSMART          ;NO-ONE WILL BE SMART
+        CLR     CurrentWave_PersuerCount          ;NO-ONE WILL BE SMART
         LDX     [PDUMMY]
 GOVID   LDX     PLINK,X         ;NEXT PROCESS
         BEQ     GOVWAT
@@ -678,7 +687,7 @@ GOVID   LDX     PLINK,X         ;NEXT PROCESS
 ;*      GAME OVER MESSAGE
 ;*
 GOVERM  LDX     #$3090
-        LDD     #256*MSGOVR+WHI*$11     ;PUT UP GAME OVER MESSAGE
+        LDD     #256*Message_ThyGameIsOver+WHI*$11     ;PUT UP GAME OVER MESSAGE
         JMP     OUTPHR
 ;*
 GOVWAT  LDA     #11             ;8*11 OR 88 TICK WAIT
@@ -835,9 +844,8 @@ GSTART  PKILL   $48,$FF         ;STOP COPIES OF ITSELF
         CLR     CRDCHG
         PKILL   $00,$00         ;STOP ALL OTHER ATTRACT MODE PROCESSES
         PROCCR  MARKET,$30
-.41S    LDB     WPIAA
-        ANDB    #$30            ;PLAYER 1 OR 2 PRESSED?
-        BEQ     .4S             ; BR=NO
+
+.41S    <# BranchOnInput(InputButton.P1Start | InputButton.P2Start, InputState.Released, ".4S", Register.B); #>
         LDX     #COINSL         ;INFINITE FREE PLAY??
         JSR     RCMSA
         CMPA    #$09            ; (CODE FOR FREE PLAYS)
@@ -858,11 +866,11 @@ GSTART  PKILL   $48,$FF         ;STOP COPIES OF ITSELF
         LDX     #CREDST         ;REMEMBER IN CMOS FOR FUTURE POWER-UP
         JSR     WCMSA
 .1S     LDA     #8              ;ASSUME BOOKS SINGLE PLAYER START
-        CLR     NPLYRS          ;ASSUME 1 PLAYER GAME
+        CLR     NumberOfPlayers          ;ASSUME 1 PLAYER GAME
         BITB    #$10            ;2 PLAYER GAME
         BEQ     GAM1P           ; BR=1 PLAYER GAME
         LDA     #9              ;ASSUME BOOKS DUAL PLAYER START
-        INC     NPLYRS          ;2 PLAYER GAME
+        INC     NumberOfPlayers          ;2 PLAYER GAME
         LDB     #10             ;BOOKS, NBR OF CREDITS STARTED (TOTAL 2)
         JSR     AUDIT1
 GAM1P   TFR     A,B             ;GET AUDIT OFFSET IN REG.B
@@ -872,7 +880,7 @@ GAM1P   TFR     A,B             ;GET AUDIT OFFSET IN REG.B
         LDX     #NSHIP          ;NUMBER OF LIVES FOR THE PLAYER(S)
         JSR     RCMSB
         JSR     BCDHX           ;BCD TO HEX CONVERT
-        STB     NLIVES
+        STB     NumberOfLives
         CLR     GOVER           ;RESET TO TRUE GAME OVER
         PKILL   $00,$00         ;KILL EVERYONE
         LDA     #$30
@@ -1033,9 +1041,9 @@ BCKUP
         BGT     .30S            ; BR=YES
         LDX     #P1DEC
 .30S    STX     PDECSN,Y        ;PLAYER 1'S JOYSTICK
-        LDA     NLIVES          ;NBR OF LIVES FOR THIS PLAYER
+        LDA     NumberOfLives          ;NBR OF LIVES FOR THIS PLAYER
         JSR     PLYRUP
-        LDA     NPLYRS          ;CREATE PLAYER #2?
+        LDA     NumberOfPlayers          ;CREATE PLAYER #2?
         BEQ     NOPLY2          ; BR=NO
         PROCCR  PLAYR,PLYID     ;CREATE PLAYER #2
         LDD     STORK           ;START HORSE
@@ -1049,32 +1057,35 @@ BCKUP
         BGT     .40S            ; BR=YES
         LDX     #P2DEC
 .40S    STX     PDECSN,Y        ;PLAYER 2'S JOYSTICK
-        LDA     NLIVES          ;NBR OF LIVES FOR THIS PLAYER
+        LDA     NumberOfLives          ;NBR OF LIVES FOR THIS PLAYER
         JSR     PLYRUP
         PCNAP   8
 NOPLY2  PROCCR  PLYCOL,$20      ;CREATE PLAYERS COLISION DETECT ROUTINE
         LDX     VLAVA           ;START LAVA PROCESS
         LDD     #$68FF          ;I.D. $68 SECONDARY PROCESS
         JSR     VCUPROC         ; CREATE THE LAVA BUBBLING PROCESS
-     IF DEBUG = 0                                                               ;;Fixme was: IFE DEBUG
+     IF DEBUG = 0                                                           ;;Fixme was: IFE DEBUG
         SECCR   KZAP,$23
      ENDIF
-        SECCR   SCODSP,$21      ;PLAYER 1'S SCORE UPDATE
+        SECCR   ScoreDisplay,$21      ;PLAYER 1'S SCORE UPDATE
         LDD     #SCRPL1
         STD     PRAM,Y
-        LDA     NPLYRS          ;2 PLAYER GAME?
+        LDA     NumberOfPlayers          ;2 PLAYER GAME?
         BEQ     NOSPL2          ; BR=NO
-        SECCR   SCODSP,$22      ;PLAYER 2'S SCORE UPDATE
+        SECCR   ScoreDisplay,$22      ;PLAYER 2'S SCORE UPDATE
         LDD     #SCRPL2
         STD     PRAM,Y
 NOSPL2  EQU     *
         LDA     GOVER           ;GAME SIMULATION?
         LBGT    SIM2A           ; BR=YES
-     IF DEBUG = 0                                                               ;;Fixme was: IFE DEBUG
-        PCNAP   2
-        JSR     JZAP
-     ENDIF
-        PROCCR  THORSE,$6F
+
+                            IF DEBUG = 0                                    ;;Fixme was: IFE DEBUG
+ZapTrigger                  PCNAP       2
+                            JSR         JZAP
+                            ENDIF
+ZapTriggerSkipped           PROCCR      THORSE,$6F
+
+;* *********************************************************************
 ;*
 ;*      REFRESH BACKGROUND LEDGES
 ;*
@@ -1116,7 +1127,7 @@ BCKN0   BITB    BCKRFS          ;THIS CLIFF BIT TO REFRESH??
 ;*      PUT UP BACKGROUND, POINTED TO BY REG.Y
 ;*
 BCKYUP  LDB     WCLENY,Y                ;CALC LOWEST POINT
-        EORB    #4                                                              ;;Fixme was: !WDMAFIX
+        EORB    #4                                                              ;;Fixme was: !DmaHorizontalWidthFIX
         ADDB    WCY,Y
         JSR     VWR1ALL
         LDA     #$0A            ;WRITE THE BACKGROUND OBJECT
@@ -1409,7 +1420,7 @@ PTEKL2  JSR     CPLYR           ;ERASE THE PTERODACTYL
         STD     WCDMA,X
 ;*
         PCNAP   2               ;WAIT FOR ERASED PTERODACTYL
-        LDD     #MSGTH1*256+($11*PTC)   ;PTERODACTYLE SCORE & COLOR
+        LDD     #Message_1000*256+($11*PTC)   ;PTERODACTYLE SCORE & COLOR
         STD     PRDIR,U
         JMP     SCRAIR
 ;*
@@ -1667,8 +1678,19 @@ LT1GRP  LDX     #SNTROL         ;MAKE THE SOUND OF THE LAVA TROLL
         STD     PJOY,Y
         STU     PDIST,Y         ;GIVE LAVAT2 LAVAT1'S PROCESS ADDRESS
         LDD     #0
+        
+        ; ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+        ; This code USED to read: "STD     PPICH,Y         RESET PICTURE AREA IN CASE OF PREMATURE CLEAR"
+        ; However, the original authors added a patch here.   To do so, they removed the STD instruction (above)
+        ; and replaced it with a JSR to a patch routine.   The first thing done in that patch routine is to
+        ; do the "STD PPICH,Y" instruction, then the additional code is executed.
+        ;
+        ; This patch will increase the lava troll's "strength" in 30 seconds.  It's not clear if that's a 1-time
+        ; increase or if it will continue to increase every 30 seconds.   I'm still learning...
+        ;
         JSR     PATCH1          ;APPLY A LAVA TROLL PATCH
-;*******        STD     PPICH,Y         RESET PICTURE AREA IN CASE OF PREMATURE CLEAR
+        ; ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+
 .1S     PCNAP   2
         JSR     LAVVFY          ;MAKE SURE TARGET STILL EXISTS
         BRA     .1S             ;LOOP UNTIL SOMETHING HAPPENS
@@ -1735,25 +1757,32 @@ LVVIN   ORCC    #$04            ;.EQ. IN RANGE
 ;*
 LVVOUT  ANDCC   #~$04           ;.NE. OUT OF RANGE (FOR ONE REASON OR ANOTHER)  ;;Fixme was: ANDCC  #!N$04
         RTS
-     IF DEBUG = 0                                                               ;;Fixme was: IFE DEBUG
+     
+                        IF DEBUG = 0                                    ;;Fixme was: IFE DEBUG
+;* ********************************************************************
 ;*
 ;*      JZAP
 ;*
-JZAP    LDX     JZAPST
-        CLRA
-.1S     ADDA    ,-X
-        CMPX    #$D000
-        BNE     .1S
-        EORA    #$A1            ;JZAPPER DATA
-        BEQ     .2S
-        INC     LXPOS2+1
-.2S     RTS
-     ENDIF
+;* ********************************************************************
+JZAP                    LDX     JZAPST
+                        CLRA
+.1S                     ADDA    ,-X
+                        CMPX    #$D000
+                        BNE     .1S
+                        EORA    #$A1            ;JZAPPER DATA
+                        BEQ     .2S
+
+ZapPrimaryAction       INC     LXPOS2+1
+.2S                     RTS
+                        ENDIF
+
+;* ********************************************************************
 ;*
 ;*
 ;*      LAVA TROLL RELEASING HIS GRIP
 ;*              DROP HAND
 ;*
+;* ********************************************************************
 LAVATF  LDA     PFRAME,U        ;NEXT FRAME
         ADDA    #-6
         STA     PFRAME,U
@@ -1834,8 +1863,7 @@ THORSE  PCNAP   30
         BRA     .30S
 ;*
 .50S    LDX     #14285/2                ;1/2 SEC DEBOUNCE
-.55S    LDA     #WDATA
-        STA     WDOG
+.55S    <# FeedWatchdog(); #>
         BSR     READEM
         SUBD    #$0506
         BEQ     .50S
@@ -1879,9 +1907,9 @@ JZAPST  FDB     $9000
 ;*
 ;*
 CIA     CLR     WAVBCD          ;WAVE STARTS AT ZERO
-        LDD     #WAVRTS
+        LDD     #WaveSetup_NoOp
         STD     PWPREV,U        ;NO PREVIOUS WAVE TO COMPLETE
-        LDD     #WAVTBL-WLEN
+        LDD     #WAVTBL-WaveState_Length
         STD     PWAVE,U
         LDA     #BAISND-BAISBL-1        ;RESET BAITER TIME TABLE
         STA     PBAITS,U
@@ -1984,7 +2012,8 @@ WTROLL  LDA     TTROLL          ;TIME TILL LAVE TROLL STARTS
         STA     PNAP,Y
 WNRM    CLR     EGGS1           ;RESET NUMBER OF EGGS KILLED BY PLAYER 1
         CLR     EGGS2           ;RESET NUMBER OF EGGS KILLED BY PLAYER 2
-        CLR     WSMART          ;RESET NUMBER OF ALLOWED SMART ENEMIES
+        CLR     CurrentWave_PersuerCount          ;RESET NUMBER OF ALLOWED SMART ENEMIES
+
       IF DEBUG <> 0     ;???????????? DEBUG PARAMATER ?????????                 ;;Fixme was: IFN DEBUG
         LDA     NSMART          ;THIS HAD BETTER BE ZERO!!!!!!!!!!
         BEQ     .41S
@@ -1994,16 +2023,17 @@ WNRM    CLR     EGGS1           ;RESET NUMBER OF EGGS KILLED BY PLAYER 1
         SWI
 .42S
       ENDIF                     ;???????????? END OF DEBUG ????????????
+
         LDA     #255
         STA     WENEMY          ;MAXIMIM ENEMIES FOR A NORMAL WAVE
         LDA     #1              ;NO ENEMY SLOW DOWN
         STA     EMYTIM
-        CLR     PMSG0,U         ;RESET WAVE N MESSAGE SENT AREA
-        CLR     PMSG1,U         ;RESET MESSAGE BUFFERS
-        CLR     PMSG2,U
-        CLR     PMSG3,U
-        CLR     PMSG4,U
-        CLR     PMSG5,U
+        CLR     WaveMessage_Row0,U         ;RESET WAVE N MESSAGE SENT AREA
+        CLR     WaveMessage_Row1,U         ;RESET MESSAGE BUFFERS
+        CLR     WaveMessage_Row2,U
+        CLR     WaveMessage_Row3,U
+        CLR     WaveMessage_Row4,U
+        CLR     WaveMessage_Row5,U
         LDA     WAVBCD          ;BCD WAVE NUMBER
         ADDA    #$01            ; NEXT WAVE NUMBER 0-99
         DAA
@@ -2013,22 +2043,22 @@ WNRM    CLR     EGGS1           ;RESET NUMBER OF EGGS KILLED BY PLAYER 1
 ;*
         JSR     [PWPREV,U]      ;CALL END OF WAVE ROUTINE
         JSR     PATC11          ;CLEAN UP GLADIATOR WAVE
-;********       JSR     EMSGS           ERASE ANY END OF WAVE MESSAGES
+;********       JSR     EraseAllWaveMessages           ERASE ANY END OF WAVE MESSAGES
         PCNAP   1
         JSR     WAVEN           ;PUT UP WAVE NUMBER
-        LDD     #WAVRTS
+        LDD     #WaveSetup_NoOp
         STD     PWPREV,U        ;NO PREVIOUS WAVE TO COMPLETE
         LDX     PWAVE,U         ;GET WAVE TABLE ADDRESS
-        LDA     WSTATUS,X       ;GET OLD CLIFF STATE
-        LEAX    WLEN,X
+        LDA     WaveState_Status,X       ;GET OLD CLIFF STATE
+        LEAX    WaveState_Length,X
         CMPX    #WTBEND         ;AT END OF TABLE??
         BLO     .1S
         LDX     #WTBRST         ;YES, RESTART AT NEW POINT
 .1S     STX     PWAVE,U         ;NEW TABLE ADDRESS
-        EORA    WSTATUS,X       ;ANY CLIFFS CHANGED?
-        ANDA    #WBCLS          ;ALL CLIFFS; WBCL1+WBCL2+WBCL4
+        EORA    WaveState_Status,X       ;ANY CLIFFS CHANGED?
+        ANDA    #WaveState_CliffAllDestroyed          ;ALL CLIFFS; WaveState_Cliff1BothDestroyed+WaveState_Cliff2Destroyed+WaveState_Cliff4Destroyed
         BEQ     .4S
-        LDB     WSTATUS,X       ;GET CORRECT STATE OF CLIFF
+        LDB     WaveState_Status,X       ;GET CORRECT STATE OF CLIFF
         LDX     #WCLFTB         ;CLIFF INFORMATION
         JSR     WCLFEW          ;CLIFF1L ERASE/WRITE ROUTINE
         LDX     #WCLFT2
@@ -2038,20 +2068,20 @@ WNRM    CLR     EGGS1           ;RESET NUMBER OF EGGS KILLED BY PLAYER 1
         LDX     #WCLFT4
         JSR     WCLFEW          ;CLIFF4 ERASE/WRITE ROUTINE
 .4S     LDX     PWAVE,U         ;GET WAVE AREA TO WORK FROM
-        LDA     WSTATUS,X       ;EARLY PERSUE?
-        BITA    #WBPER
+        LDA     WaveState_Status,X       ;EARLY PERSUE?
+        BITA    #WaveState_ImmediatePersue
         BEQ     .44S            ; BR=NO
-        LDA     WPERSUE,X       ;SET PERSUE VARIABLE
+        LDA     WaveState_PersuerCount,X       ;SET PERSUE VARIABLE
         ANDA    #$0F
-        STA     WSMART
-.44S    LDB     WSTATUS,X               ;CALL WAVE STARTER ROUTINE
+        STA     CurrentWave_PersuerCount
+.44S    LDB     WaveState_Status,X               ;CALL WAVE STARTER ROUTINE
         ANDB    #WBJSR0+WBJSR1+WBJSR2   ;MASK OFF OTHER BITS
-        LDX     #WJSRTB         ;JSR TABLE
+        LDX     #WaveSetup_SubroutineJumpTable         ;JSR TABLE
         JSR     [B,X]
 WPAUSE  LDA     #180/6          ;WAIT A SECOND
 WPAUS2  JSR     WAVDEL
         JSR     WATWAV          ;WAIT TILL END OF WAVE
-WPAUS3  JSR     EMSGS           ;ERASE ALL MESSAGES
+WPAUS3  JSR     EraseAllWaveMessages           ;ERASE ALL MESSAGES
         LDA     [PWAVE,U]       ;INTRODUCE BOUNDARS
         LSRA
         LSRA
@@ -2060,13 +2090,13 @@ WPAUS3  JSR     EMSGS           ;ERASE ALL MESSAGES
         BEQ     .2S             ;BR=NO BOUNDARS
         LDX     #P4DEC          ;(INTELLIGENCE)
         JSR     WCREATE         ;CREATE THEM
-.2S     LDA     [PWAVE,U]       ;INTRODUCE BOUNDARS
+.2S     LDA     [PWAVE,U]       ;INTRODUCE hunters
         ANDA    #$0F
-        BEQ     .3S             ;BR=NO BOUNDARS
+        BEQ     .3S             ;BR=NO hunters
         LDX     #P5DEC          ;(INTELLIGENCE)
         JSR     WCREATE         ;CREATE THEM
 .3S     LDX     PWAVE,U
-        LDA     WLORD,X         ;INTRODUCE SHADOW LORDS
+        LDA     WaveState_ShadowLordCount,X         ;INTRODUCE SHADOW LORDS
         LSRA
         LSRA
         LSRA
@@ -2078,9 +2108,9 @@ WPAUS3  JSR     EMSGS           ;ERASE ALL MESSAGES
 WBEGIN  LDA     GOVER           ;IS THE GAME OVER?
         BEQ     .5S             ; BR=YES
         LDX     PWAVE,U
-        LDA     WPERSUE,X       ;SET PERSUE VARIABLE
+        LDA     WaveState_PersuerCount,X       ;SET PERSUE VARIABLE
         ANDA    #$0F
-        STA     WSMART
+        STA     CurrentWave_PersuerCount
 .5S     LDA     PBAITS,U        ;GET BAITERS TABLE DRIVEN TIME
         BEQ     .6S
         DEC     PBAITS,U
@@ -2130,9 +2160,9 @@ EMYOK   PCNAP   8
         BNE     EMYOK
         LDA     GOVER           ;IS THE GAME OVER?
         BEQ     EMY2            ; BR=YES
-        INC     WSMART
+        INC     CurrentWave_PersuerCount
         BNE     EMY2
-        DEC     WSMART
+        DEC     CurrentWave_PersuerCount
         BRA     EMY2
 ;*
 ;*      BAITER SEND OFF TIME TABLE
@@ -2240,56 +2270,78 @@ REWMSG  PULS    D               ;SAVE RETURN ADDRESS
         STD     PWRTS2,U
         LDA     GOVER           ;GAME OVER?
         BEQ     .1S
-        LDA     #PMSG1          ;REMEMBER TO START AT MESSAGE 1
+        LDA     #WaveMessage_Row1          ;REMEMBER TO START AT MESSAGE 1
         STA     PMSGA,U
-        LDA     PMSG0,U         ;THIS MESSAGE O.K. TO PUT OUT?
+        LDA     WaveMessage_Row0,U         ;THIS MESSAGE O.K. TO PUT OUT?
         BEQ     .2S             ; BR=NO
         JSR     WAVEN
 .2S     PCNAP   1
         LDA     PMSGA,U         ;GET CURRENT MESSAGE TO WRITE
-        CMPA    #PMSG5          ;LAST MESSAGE WAS THE LAST ONE?
+        CMPA    #WaveMessage_Row5          ;LAST MESSAGE WAS THE LAST ONE?
         BHI     .1S             ; BR=YES, RETURN TO CALLER
         LEAY    A,U
-        ADDA    #PMSG2-PMSG1    ;NEXT MESSAGE TO WRITE
+        ADDA    #WaveMessage_Row2-WaveMessage_Row1    ;NEXT MESSAGE TO WRITE
         STA     PMSGA,U
         BSR     WMSG2
         BRA     .2S
 ;*
 .1S     JMP     [PWRTS2,U]
+
+;* ***** ***** ***** ***** ***** ***** ***** ***** ***** ***** *****
 ;*
 ;*      INITIAL WRITE & SAVE MESSAGE NBR & SCREEN LOCATION
 ;*
-WAVMSG  LEAY    PMSG1-4,U
-.1S     LEAY    4,Y
-        TST     ,Y
-        BNE     .1S
-        LDA     GOVER
-        BEQ     WVMRTS
-        LDD     ,X
-        STD     ,Y
-        LDD     2,X
-        STD     2,Y
-WMSG2   LDA     ,Y
-        BEQ     WVMRTS
-        LDB     1,Y
-        LDX     2,Y
-        JMP     OUTPHR
-WVMRTS  RTS
+;*      DisplayWaveMessage (Subroutine)
+;*      Inputs:
+;*          * Reg.U = ???
+;*      Outputs:
+;*      Side Effects:
+;*          * Destroys Reg.A, Reg.D, Reg.B, Reg.X, Reg.Y
+;*          * Calls OUTPHR
+;*      
+;* ***** ***** ***** ***** ***** ***** ***** ***** ***** ***** *****
+DisplayWaveMessage
+                    LEAY            WaveMessage_Row1-4,U                ; LEAY = Load Effective Address into Reg.Y -- Y = U + WaveMessage_Row1 - 4
+_dwm1               LEAY            4,Y                                 ; Y = Y + 4
+                    TST             ,Y                                  ; 
+                    BNE             _dwm1                               ; 
+                    LDA             GOVER                               ; $00 = GAME IN PROGRESS, $80 = GAME OVER
+                    BEQ             _dwm9                               ; If Reg.A = 0, then RTS
+                    LDD             ,X                                  ; 
+                    STD             ,Y                                  ; 
+                    LDD             2,X                                 ; 
+                    STD             2,Y                                 ; 
+WMSG2               LDA             ,Y                                  ; 
+                    BEQ             _dwm9                               ; 
+                    LDB             1,Y                                 ; 
+                    LDX             2,Y                                 ; 
+                    JMP             OUTPHR                              ; 
+_dwm9               RTS                                                 ; 
+
+;* ***** ***** ***** ***** ***** ***** ***** ***** ***** ***** *****
 ;*
 ;*      ERASE ALL MESSAGES
 ;*
-EMSGS   LDA     PMSG0,U         ;WAVE MESSAGE SENT TO SCREEN?
+;*      Inputs:
+;*      Outputs:
+;*      SideEffects:
+;*          * Destroys Reg.A, Reg.B, Reg.X, Reg.Y
+;*          * Calls OUTPHR, WAVEN2
+;*
+;* ***** ***** ***** ***** ***** ***** ***** ***** ***** ***** *****
+EraseAllWaveMessages
+        LDA     WaveMessage_Row0,U         ;WAVE MESSAGE SENT TO SCREEN?
         BEQ     .11S            ; BR=NO
         JSR     WAVEN2          ;ERASE WAVE NUMBER
-.11S    LEAY    PMSG1,U         ;MESSAGE 1
+.11S    LEAY    WaveMessage_Row1,U         ;MESSAGE 1
         BSR     .1S
-        LEAY    PMSG2,U         ;MESSAGE 2
+        LEAY    WaveMessage_Row2,U         ;MESSAGE 2
         BSR     .1S
-        LEAY    PMSG3,U         ;MESSAGE 3
+        LEAY    WaveMessage_Row3,U         ;MESSAGE 3
         BSR     .1S
-        LEAY    PMSG4,U         ;MESSAGE 4
+        LEAY    WaveMessage_Row4,U         ;MESSAGE 4
         BSR     .1S
-        LEAY    PMSG5,U         ;MESSAGE 5
+        LEAY    WaveMessage_Row5,U         ;MESSAGE 5
 .1S     LDA     ,Y
         BEQ     .2S
         CLR     ,Y              ;FORGET ABOUT THIS MESSAGE
@@ -2297,6 +2349,7 @@ EMSGS   LDA     PMSG0,U         ;WAVE MESSAGE SENT TO SCREEN?
         LDX     2,Y
         JMP     OUTPHR
 .2S     RTS
+
 ;*
 ;*      ERASE/WRITE THE CLIFF,
 ;*       MODIFY LANDING TABLE
@@ -2396,10 +2449,10 @@ CLRBIT  TFR     A,B
 ;*      PRINT THE WAVE NUMBER
 ;*
 WAVEN   LDD     #MSW06*256+WHI*$11      ;PUT UP 'WAVE XX'
-        STA     PMSG0,U         ;THIS MESSAGE HAS BEEN PUT UP
+        STA     WaveMessage_Row0,U         ;THIS MESSAGE HAS BEEN PUT UP
         BRA     WAVEN3
 WAVEN2  LDD     #MSW06*256+$00  ;ERASE 'WAVE XX'
-        CLR     PMSG0,U         ;THIS MESSAGE HAS BEEN ERASED
+        CLR     WaveMessage_Row0,U         ;THIS MESSAGE HAS BEEN ERASED
 WAVEN3  LDX     #$3A60
         JSR     OUTPHR
         LDA     WAVBCD
@@ -2407,18 +2460,19 @@ WAVEN3  LDX     #$3A60
         BNE     .1S
         ORA     #$F0
 .1S     JMP     OUTBCD
+
 ;*
 ;*      CLIF DESTROY/CREATE DATA TABLE
 ;*
-WCLFTB  FCB     WBCL1L,$01,$03
-         FDB     CLIF1L,0
-WCLFT2  FCB     WBCL1R,$00,$00
-         FDB     CLIF1R,0
-WCLFT3  FCB     WBCL2,$02,$04
-         FDB     CLIF2,CURTR1
-WCLFT4  FCB     WBCL4,$10,$40
-         FDB     CLIF4,0
-;*
+WCLFTB  FCB     WaveState_Cliff1LeftDestroyed,$01,$03
+        FDB     CLIF1L,0
+WCLFT2  FCB     WaveState_Cliff1RightDestroyed,$00,$00
+        FDB     CLIF1R,0
+WCLFT3  FCB     WaveState_Cliff2Destroyed,$02,$04
+        FDB     CLIF2,CURTR1
+WCLFT4  FCB     WaveState_Cliff4Destroyed,$10,$40
+        FDB     CLIF4,0
+
 INTRO1  FDB     MSW00*256+WHI*$11,$2D7D ;INTRO #1
 INTRO2  FDB     MSW01*256+WHI*$11,$339B ;INTRO #2
 COOP1   FDB     MSW02*256+WHI*$11,$367D ;CO-OP (TEAM) WAVE INTRO #1
@@ -2437,121 +2491,139 @@ GLAD5   FDB     MSW12*256+PL1*$11,$10B6 ; RED - 3000 POINT BOUNTY
 GLAD6   FDB     MSW12*256+PL2*$11,$4FB6 ; GREEN - 3K POINT BOUNTY
 EGG1    FDB     MSW13*256+WHI*$11,$387D ;EGG WAVE INTRO
 PTER1   FDB     MSW07*256+WHI*$11,$1178 ;1478   PTERODACTYL BEWARE
+
 ;*
 ;*      WAVE TABLE
 ;*
-        FCB     $40,$01,0,0                     ;WAVE 0 (FOR INITILIZATION)
+;*      Data: $AB, $CD, $EE, $FF
+;*
+;*      A = 0-15 bounder count
+;*      B = 0-15 hunter count
+;*      C = 0-15 shadow lord count
+;*      D = 0-15 persuer count
+;*      EE = 0-? pterodactyl count
+;*      FF = wave status
+Wave_General                EQU     $0      ; 0 ($0) = NOP ROUTINE
+Wave_DisplayIntroMessage    EQU     $2      ; 1 ($2) = INTRODUCTION MESSAGE
+Wave_CooperativeWave        EQU     $4      ; 2 ($4) = CO-OPERATION WAVE SET-UP (Survivor in 1P mode)
+Wave_GladiatorWave          EQU     $6      ; 3 ($6) = GLADIATOR SET-UP
+Wave_EggWave                EQU     $8      ; 4 ($8) = EGG WAVE SET-UP
+Wave_PterodactylWave        EQU     $A      ; 5 ($A) = PTERODACTYL WAVE
+;*
+        FCB     $40, $01, 0, Wave_General                                                                                   ;WAVE 0 (FOR INITILIZATION)
 WAVTBL
-        FCB     $30,$01,0,2                     ;WAVE 1 - NEEDS INTRO MESSAGE
-        FCB     $40,$01,0,4                     ;WAVE 2 - COOP/TEAM/SURVIVE WAVE
-        FCB     $60,$02,0,0                     ;WAVE 3
-        FCB     $33,$01,0,6                     ;WAVE 4 - GLADIATOR WAVE
-        FCB     $60,$01,0,8                     ;WAVE 5 - EGG WAVE
+        FCB     $30, $01, 0,  Wave_DisplayIntroMessage                                                                      ;WAVE 1  - NEEDS INTRO MESSAGE
+        FCB     $40, $01, 0,  Wave_CooperativeWave                                                                          ;WAVE 2  - COOP/TEAM/SURVIVE WAVE
+        FCB     $60, $02, 0,  Wave_General                                                                                  ;WAVE 3  
+        FCB     $33, $01, 0,  Wave_GladiatorWave                                                                            ;WAVE 4  - GLADIATOR WAVE
+        FCB     $60, $01, 0,  Wave_EggWave                                                                                  ;WAVE 5  - EGG WAVE
+        FCB     $33, $03, 0, Wave_General + WaveState_ImmediatePersue + WaveState_Cliff2Destroyed                           ;WAVE 6  
+        FCB     $24, $02, 0, Wave_CooperativeWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd2Destroyed           ;WAVE 7  - COOP/TEAM/SURVIVE WAVE
 
-        FCB     $33,$03,0,WBPER+WBCL2+0         ;WAVE 6
-        FCB     $24,$02,0,WBPER+WBCL12+4        ;WAVE 7 - COOP/TEAM/SURVIVE WAVE
-EJP01
-        FCB     $06,$01,1,WBPER+WBCL12+10       ;WAVE 8- PTERODACTYL WAVE
-        FCB     $06,$02,0,WBPER+WBCLS+6         ;WAVE 9 - GLADIATOR WAVE
-        FCB     $80,$03,0,8                     ;WAVE 10- EGG WAVE
+EJP01                                                                                                                                
+        FCB     $06, $01, 1, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd2Destroyed           ;WAVE 8  - PTERODACTYL WAVE
+        FCB     $06, $02, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                   ;WAVE 9  - GLADIATOR WAVE
+        FCB     $80, $03, 0, Wave_EggWave                                                                                   ;WAVE 10 - EGG WAVE
 
-        FCB     $35,$03,0,WBPER+0               ;WAVE 11
-        FCB     $26,$02,0,WBPER+WBCL4+4         ;WAVE 12- COOP/TEAM/SURVIVE WAVE
-        FCB     $07,$03,1,WBPER+WBCLS+10        ;WAVE 13- PTERODACTYL WAVE
-        FCB     $08,$04,0,WBPER+WBCLS+6         ;WAVE 14- GLADIATOR WAVE
-        FCB     $06,$02,0,8                     ;WAVE 15- EGG WAVE
+        FCB     $35, $03, 0, Wave_General + WaveState_ImmediatePersue                                                       ;WAVE 11 
+        FCB     $26, $02, 0, Wave_CooperativeWave + WaveState_ImmediatePersue + WaveState_Cliff4Destroyed                   ;WAVE 12 - COOP/TEAM/SURVIVE WAVE
+        FCB     $07, $03, 1, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                 ;WAVE 13 - PTERODACTYL WAVE
+        FCB     $08, $04, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                   ;WAVE 14 - GLADIATOR WAVE
+        FCB     $06, $02, 0, Wave_EggWave                                                                                   ;WAVE 15 - EGG WAVE
 
-        FCB     $05,$1F,0,0                     ;WAVE 16
-        FCB     $05,$1F,0,4                     ;WAVE 17- COOP/TEAM/SURVIVE WAVE
-        FCB     $05,$1F,2,10                    ;WAVE 18- PTERODACTYL WAVE
-        FCB     $04,$2F,0,6                     ;WAVE 19- GLADIATOR WAVE
-        FCB     $06,$03,0,8                     ;WAVE 20- EGG WAVE
+        FCB     $05, $1F, 0, Wave_General                                                                                   ;WAVE 16 
+        FCB     $05, $1F, 0, Wave_CooperativeWave                                                                           ;WAVE 17 - COOP/TEAM/SURVIVE WAVE
+        FCB     $05, $1F, 2, Wave_PterodactylWave                                                                           ;WAVE 18 - PTERODACTYL WAVE
+        FCB     $04, $2F, 0, Wave_GladiatorWave                                                                             ;WAVE 19 - GLADIATOR WAVE
+        FCB     $06, $03, 0, Wave_EggWave                                                                                   ;WAVE 20 - EGG WAVE
+                                                                                                                                     
+        FCB     $03, $3F, 0, Wave_General + WaveState_ImmediatePersue + WaveState_Cliff1BothDestroyed                       ;WAVE 21 
+        FCB     $02, $4F, 0, Wave_CooperativeWave + WaveState_ImmediatePersue + WaveState_Cliff1BothDestroyed               ;WAVE 22 - COOP/TEAM/SURVIVE WAVE
+        FCB     $02, $4F, 2, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 23 - PTERODACTYL WAVE
+        FCB     $02, $4F, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed             ;WAVE 24 - GLADIATOR WAVE
+        FCB     $06, $04, 0, Wave_EggWave                                                                                   ;WAVE 25 - EGG WAVE
+                                                                                                                                     
+        FCB     $03, $5F, 0, Wave_General + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                         ;WAVE 26 
+        FCB     $03, $5F, 0, Wave_CooperativeWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                 ;WAVE 27 - COOP/TEAM/SURVIVE WAVE
+        FCB     $02, $4F, 2, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                 ;WAVE 28 - PTERODACTYL WAVE
+        FCB     $03, $5F, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                   ;WAVE 29 - GLADIATOR WAVE
+        FCB     $06, $03, 0, Wave_EggWave                                                                                   ;WAVE 30 - EGG WAVE
 
-        FCB     $03,$3F,0,WBPER+WBCL1+0         ;WAVE 21
-        FCB     $02,$4F,0,WBPER+WBCL1+4         ;WAVE 22- COOP/TEAM/SURVIVE WAVE
-        FCB     $02,$4F,2,WBPER+WBCL14+10       ;WAVE 23- PTERODACTYL WAVE
-        FCB     $02,$4F,0,WBPER+WBCL14+6        ;WAVE 24- GLADIATOR WAVE
-        FCB     $06,$04,0,8                     ;WAVE 25- EGG WAVE
+        FCB     $04, $4F, 0, Wave_General + WaveState_ImmediatePersue                                                       ;WAVE 31 
+        FCB     $02, $6F, 0, Wave_CooperativeWave + WaveState_ImmediatePersue                                               ;WAVE 32 - COOP/TEAM/SURVIVE WAVE
+        FCB     $02, $4F, 2, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_Cliff2Destroyed                   ;WAVE 33 - PTERODACTYL WAVE
+        FCB     $02, $6F, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_Cliff2Destroyed                     ;WAVE 34 - GLADIATOR WAVE
+        FCB     $08, $05, 0, Wave_EggWave                                                                                   ;WAVE 35 - EGG WAVE
+                                                                                                                                   
+        FCB     $02, $6F, 0, Wave_General + WaveState_ImmediatePersue + WaveState_Cliff4Destroyed                           ;WAVE 36 
+        FCB     $00, $8F, 0, Wave_CooperativeWave + WaveState_ImmediatePersue + WaveState_Cliff4Destroyed                   ;WAVE 37 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $6F, 2, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_Cliff2And4Destroyed               ;WAVE 38 - PTERODACTYL WAVE
+        FCB     $00, $8F, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_Cliff2And4Destroyed                 ;WAVE 39 - GLADIATOR WAVE
+        FCB     $08, $05, 0, Wave_EggWave                                                                                   ;WAVE 40 - EGG WAVE
+                                                                                                                                   
+        FCB     $03, $7F, 0, Wave_General + WaveState_ImmediatePersue + WaveState_Cliff1BothDestroyed                       ;WAVE 41 
+        FCB     $00, $AF, 0, Wave_CooperativeWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 42 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $7F, 3, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 43 - PTERODACTYL WAVE
+        FCB     $00, $AF, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                   ;WAVE 44 - GLADIATOR WAVE
+        FCB     $08, $06, 0, Wave_EggWave                                                                                   ;WAVE 45 - EGG WAVE
+                                                                                                                                   
+        FCB     $03, $7F, 0, Wave_General + WaveState_ImmediatePersue                                                       ;WAVE 46 
+        FCB     $00, $AF, 0, Wave_CooperativeWave + WaveState_ImmediatePersue                                               ;WAVE 47 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $7F, 3, Wave_PterodactylWave + WaveState_ImmediatePersue                                               ;WAVE 48 - PTERODACTYL WAVE
+        FCB     $00, $AF, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_Cliff4Destroyed                     ;WAVE 49 - GLADIATOR WAVE
+        FCB     $08, $06, 0, Wave_EggWave                                                                                   ;WAVE 50 - EGG WAVE
+                                                                                                                                   
+        FCB     $03, $7F, 0, Wave_General + WaveState_ImmediatePersue + WaveState_Cliff1BothDestroyed                       ;WAVE 51 
+        FCB     $00, $AF, 0, Wave_CooperativeWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 52 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $7F, 3, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 53 - PTERODACTYL WAVE
+        FCB     $00, $AF, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                   ;WAVE 54 - GLADIATOR WAVE
+        FCB     $08, $0F, 0, Wave_EggWave                                                                                   ;WAVE 55 - EGG WAVE
+                                                                                                                                   
+        FCB     $03, $7F, 0, Wave_General + WaveState_ImmediatePersue                                                       ;WAVE 56 
+        FCB     $00, $AF, 0, Wave_CooperativeWave + WaveState_ImmediatePersue                                               ;WAVE 57 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $7F, 3, Wave_PterodactylWave + WaveState_ImmediatePersue                                               ;WAVE 58 - PTERODACTYL WAVE
+        FCB     $00, $AF, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_Cliff4Destroyed                     ;WAVE 59 - GLADIATOR WAVE
+        FCB     $00, $63, 0, Wave_EggWave                                                                                   ;WAVE 60 - EGG WAVE
+                                                                                                                                   
+        FCB     $00, $AF, 0, Wave_General + WaveState_ImmediatePersue + WaveState_Cliff1BothDestroyed                       ;WAVE 61 
+        FCB     $00, $AF, 0, Wave_CooperativeWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 62 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $7F, 3, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 63 - PTERODACTYL WAVE
+        FCB     $00, $AF, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                   ;WAVE 64 - GLADIATOR WAVE
+        FCB     $00, $64, 0, Wave_EggWave                                                                                   ;WAVE 65 - EGG WAVE
+                                                                                                                                   
+        FCB     $00, $AF, 0, Wave_General + WaveState_ImmediatePersue                                                       ;WAVE 66 
+        FCB     $00, $AF, 0, Wave_CooperativeWave + WaveState_ImmediatePersue                                               ;WAVE 67 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $7F, 3, Wave_PterodactylWave + WaveState_ImmediatePersue                                               ;WAVE 68 - PTERODACTYL WAVE
+        FCB     $00, $AF, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_Cliff4Destroyed                     ;WAVE 69 - GLADIATOR WAVE
+        FCB     $00, $65, 0, Wave_EggWave                                                                                   ;WAVE 70 - EGG WAVE
+                                                                                                                                   
+        FCB     $00, $AF, 0, Wave_General + WaveState_ImmediatePersue + WaveState_Cliff1BothDestroyed                       ;WAVE 71 
+        FCB     $00, $AF, 0, Wave_CooperativeWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 72 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $7F, 3, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 73 - PTERODACTYL WAVE
+        FCB     $00, $AF, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                   ;WAVE 74 - GLADIATOR WAVE
+        FCB     $00, $6F, 0, Wave_EggWave                                                                                   ;WAVE 75 - EGG WAVE
+                                                                                                                                   
+        FCB     $00, $AF, 0, Wave_General + WaveState_ImmediatePersue                                                       ;WAVE 76 
+        FCB     $00, $AF, 0, Wave_CooperativeWave + WaveState_ImmediatePersue                                               ;WAVE 77 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $7F, 3, Wave_PterodactylWave + WaveState_ImmediatePersue                                               ;WAVE 78 - PTERODACTYL WAVE
+        FCB     $00, $AF, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_Cliff4Destroyed                     ;WAVE 79 - GLADIATOR WAVE
+        FCB     $00, $86, 0, Wave_EggWave                                                                                   ;WAVE 80 - EGG WAVE
+                                                                                                                                   
+WTBRST  FCB     $00, $AF, 0, Wave_General + WaveState_ImmediatePersue + WaveState_Cliff1BothDestroyed                       ;WAVE 81 
+        FCB     $00, $AF, 0, Wave_CooperativeWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 82 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $7F, 3, Wave_PterodactylWave + WaveState_ImmediatePersue + WaveState_Cliff1BothAnd4Destroyed           ;WAVE 83 - PTERODACTYL WAVE
+        FCB     $00, $AF, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_CliffAllDestroyed                   ;WAVE 84 - GLADIATOR WAVE
+        FCB     $00, $8F, 0, Wave_EggWave                                                                                   ;WAVE 85 - EGG WAVE
+                                                                                                                                   
+        FCB     $00, $AF, 0, Wave_General + WaveState_ImmediatePersue                                                       ;WAVE 86 
+        FCB     $00, $AF, 0, Wave_CooperativeWave + WaveState_ImmediatePersue                                               ;WAVE 87 - COOP/TEAM/SURVIVE WAVE
+        FCB     $00, $7F, 3, Wave_PterodactylWave + WaveState_ImmediatePersue                                               ;WAVE 88 - PTERODACTYL WAVE
+        FCB     $00, $AF, 0, Wave_GladiatorWave + WaveState_ImmediatePersue + WaveState_Cliff4Destroyed                     ;WAVE 89 - GLADIATOR WAVE
+        FCB     $00, $8F, 0, Wave_EggWave                                                                                   ;WAVE 80 - EGG WAVE
 
-        FCB     $03,$5F,0,WBPER+WBCLS+0         ;WAVE 26
-        FCB     $03,$5F,0,WBPER+WBCLS+4         ;WAVE 27- COOP/TEAM/SURVIVE WAVE
-        FCB     $02,$4F,2,WBPER+WBCLS+10        ;WAVE 28- PTERODACTYL WAVE
-        FCB     $03,$5F,0,WBPER+WBCLS+6         ;WAVE 29- GLADIATOR WAVE
-        FCB     $06,$03,0,8                     ;WAVE 30- EGG WAVE
+WTBEND  EQU     *                                                                                                           ;END OF WAVE TABLE, REPEAT AT "WTBRST"
 
-        FCB     $04,$4F,0,WBPER+0               ;WAVE 31
-        FCB     $02,$6F,0,WBPER+4               ;WAVE 32- COOP/TEAM/SURVIVE WAVE
-        FCB     $02,$4F,2,WBPER+WBCL2+10        ;WAVE 33- PTERODACTYL WAVE
-        FCB     $02,$6F,0,WBPER+WBCL2+6         ;WAVE 34- GLADIATOR WAVE
-        FCB     $08,$05,0,8                     ;WAVE 35- EGG WAVE
-
-        FCB     $02,$6F,0,WBPER+WBCL4+0         ;WAVE 36
-        FCB     $00,$8F,0,WBPER+WBCL4+4         ;WAVE 37- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$6F,2,WBPER+WBCL24+10       ;WAVE 38- PTERODACTYL WAVE
-        FCB     $00,$8F,0,WBPER+WBCL24+6        ;WAVE 39- GLADIATOR WAVE
-        FCB     $08,$05,0,8                     ;WAVE 40- EGG WAVE
-
-        FCB     $03,$7F,0,WBPER+WBCL1+0         ;WAVE 41
-        FCB     $00,$AF,0,WBPER+WBCL14+4        ;WAVE 42- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$7F,3,WBPER+WBCL14+10       ;WAVE 43- PTERODACTYL WAVE
-        FCB     $00,$AF,0,WBPER+WBCLS+6         ;WAVE 44- GLADIATOR WAVE
-        FCB     $08,$06,0,8                     ;WAVE 45- EGG WAVE
-
-        FCB     $03,$7F,0,WBPER+0               ;WAVE 46
-        FCB     $00,$AF,0,WBPER+4               ;WAVE 47- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$7F,3,WBPER+10              ;WAVE 48- PTERODACTYL WAVE
-        FCB     $00,$AF,0,WBPER+WBCL4+6         ;WAVE 49- GLADIATOR WAVE
-        FCB     $08,$06,0,8                     ;WAVE 50- EGG WAVE
-
-        FCB     $03,$7F,0,WBPER+WBCL1+0         ;WAVE 51
-        FCB     $00,$AF,0,WBPER+WBCL14+4        ;WAVE 52- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$7F,3,WBPER+WBCL14+10       ;WAVE 53- PTERODACTYL WAVE
-        FCB     $00,$AF,0,WBPER+WBCLS+6         ;WAVE 54- GLADIATOR WAVE
-        FCB     $08,$0F,0,8                     ;WAVE 55- EGG WAVE
-
-        FCB     $03,$7F,0,WBPER+0               ;WAVE 56
-        FCB     $00,$AF,0,WBPER+4               ;WAVE 57- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$7F,3,WBPER+010             ;WAVE 58- PTERODACTYL WAVE
-        FCB     $00,$AF,0,WBPER+WBCL4+6         ;WAVE 59- GLADIATOR WAVE
-        FCB     $00,$63,0,8                     ;WAVE 60- EGG WAVE
-
-        FCB     $00,$AF,0,WBPER+WBCL1+0         ;WAVE 61
-        FCB     $00,$AF,0,WBPER+WBCL14+4        ;WAVE 62- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$7F,3,WBPER+WBCL14+10       ;WAVE 63- PTERODACTYL WAVE
-        FCB     $00,$AF,0,WBPER+WBCLS+6         ;WAVE 64- GLADIATOR WAVE
-        FCB     $00,$64,0,8                     ;WAVE 65- EGG WAVE
-
-        FCB     $00,$AF,0,WBPER+0               ;WAVE 66
-        FCB     $00,$AF,0,WBPER+4               ;WAVE 67- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$7F,3,WBPER+10              ;WAVE 68- PTERODACTYL WAVE
-        FCB     $00,$AF,0,WBPER+WBCL4+6         ;WAVE 69- GLADIATOR WAVE
-        FCB     $00,$65,0,8                     ;WAVE 70- EGG WAVE
-
-        FCB     $00,$AF,0,WBPER+WBCL1+0         ;WAVE 71
-        FCB     $00,$AF,0,WBPER+WBCL14+4        ;WAVE 72- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$7F,3,WBPER+WBCL14+10       ;WAVE 73- PTERODACTYL WAVE
-        FCB     $00,$AF,0,WBPER+WBCLS+6         ;WAVE 74- GLADIATOR WAVE
-        FCB     $00,$6F,0,8                     ;WAVE 75- EGG WAVE
-
-        FCB     $00,$AF,0,WBPER+0               ;WAVE 76
-        FCB     $00,$AF,0,WBPER+4               ;WAVE 77- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$7F,3,WBPER+10              ;WAVE 78- PTERODACTYL WAVE
-        FCB     $00,$AF,0,WBPER+WBCL4+6         ;WAVE 79- GLADIATOR WAVE
-        FCB     $00,$86,0,8                     ;WAVE 80- EGG WAVE
-
-WTBRST  FCB     $00,$AF,0,WBPER+WBCL1+0         ;WAVE 81
-        FCB     $00,$AF,0,WBPER+WBCL14+4        ;WAVE 82- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$7F,3,WBPER+WBCL14+10       ;WAVE 83- PTERODACTYL WAVE
-        FCB     $00,$AF,0,WBPER+WBCLS+6         ;WAVE 84- GLADIATOR WAVE
-        FCB     $00,$8F,0,8                     ;WAVE 85- EGG WAVE
-
-        FCB     $00,$AF,0,WBPER+0               ;WAVE 86
-        FCB     $00,$AF,0,WBPER+4               ;WAVE 87- COOP/TEAM/SURVIVE WAVE
-        FCB     $00,$7F,3,WBPER+10              ;WAVE 88- PTERODACTYL WAVE
-        FCB     $00,$AF,0,WBPER+WBCL4+6         ;WAVE 89- GLADIATOR WAVE
-        FCB     $00,$8F,0,8                     ;WAVE 80- EGG WAVE
-WTBEND  EQU     *                       ;END OF WAVE TABLE, REPEAT AT "WTBRST"
-     IF DEBUG = 0                                                               ;;Fixme was: IFE DEBUG
+     IF DEBUG = 0                                                                                                           ;;Fixme was: IFE DEBUG
 ;*
 ;*      ALTERNATE COPYRIGHT MESSAGE
 ;*
@@ -2587,38 +2659,42 @@ MSCOP2  FDB     $10F8
         FCB     $2E!HIDE+HIDE2  ;.                                              ;;Fixme was: !XHIDE
         FCB     0
      ENDIF
+
 ;*
 ;*      WAVE SUBROUTINE TABLE
 ;*
-WJSRTB  FDB     WAVRTS          ;NOP ROUTINE
-        FDB     WINTRO          ;INTRODUCTION MESSAGE
-        FDB     WCOOP           ;CO-OPERATION WAVE SET-UP
-        FDB     WGLAD           ;GLADIATOR SET-UP
-        FDB     WAVEGG          ;EGG WAVE SET-UP
-        FDB     WPTERO          ;PTERODACTYL WAVE
+WaveSetup_SubroutineJumpTable  FDB     WaveSetup_NoOp                           ; 0 ($0) = NOP ROUTINE
+        FDB     WaveSetup_DisplayIntroMessage                                   ; 1 ($2) = INTRODUCTION MESSAGE
+        FDB     WaveSetup_CooperativeWave                                       ; 2 ($4) = CO-OPERATION WAVE SET-UP
+        FDB     WaveSetup_GladiatorWave                                         ; 3 ($6) = GLADIATOR SET-UP
+        FDB     WaveSetup_EggWave                                               ; 4 ($8) = EGG WAVE SET-UP
+        FDB     WaveSetup_PterodactylWave                                       ; 5 ($A) = PTERODACTYL WAVE
+
 ;*
-WAVRTS  RTS                     ;NOTHING TO DO
+WaveSetup_NoOp  RTS                     ;NOTHING TO DO
+
 ;*
-WINTRO  LDX     #INTRO1
-        JSR     WAVMSG
+WaveSetup_DisplayIntroMessage  LDX     #INTRO1
+        JSR     DisplayWaveMessage
         LDA     #90/6
         JSR     WAVDEL
         LDX     #INTRO2
-        JSR     WAVMSG
+        JSR     DisplayWaveMessage
         LDA     #90/6           ;RESET OF 1 SECOND DELAY
         JMP     WPAUS2
+
 ;*
 ;*      PTERODACTYL WAVE START
 ;*
-WPTERO  EQU     *               ;PTERODACTYL WAVE
+WaveSetup_PterodactylWave  EQU     *               ;PTERODACTYL WAVE
         LDX     #PTER1
-        JSR     WAVMSG
+        JSR     DisplayWaveMessage
         LDA     #180/6
         JSR     WAVDEL
         JSR     WATWAV          ;WAIT TILL TRUE END OF WAVE
         SECCR   PTERWV,PTEID    ;START WAVE STARTED PTERODACYL'S
         LDX     PWAVE,U         ;GET WAVE AREA TO WORK FROM
-        LDA     WPTEN,X         ; GET NBR OF PTERODCTYLS FOR THIS WAVE
+        LDA     WaveState_PterodactylCount,X         ; GET NBR OF PTERODCTYLS FOR THIS WAVE
         STA     PJOYT,Y         ;NUMBER OF PTERODACTYLS TO CREATE
         JMP     WPAUS3
 ;*
@@ -2632,7 +2708,7 @@ PTERWV  PCNAP   65
 ;*
 ;*      CO-OPERATION (TEAM) WAVE OR SURVIVAL WAVE (2 PLAYER/1 PLAYER)
 ;*
-WCOOP   LDA     SPLY2+6         ;THIS MESSAGE IS FOR TWO PLAYERS ONLY
+WaveSetup_CooperativeWave   LDA     SPLY2+6         ;THIS MESSAGE IS FOR TWO PLAYERS ONLY
         BEQ     WAVSUR          ; BR=PLAYER 2 DEAD, GO TO SURVIVAL WAVE
         LDA     SPLY1+6
         BEQ     WAVSUR          ; BR=PLAYER 1 DEAD, GO TO SURVIVAL WAVE
@@ -2641,9 +2717,9 @@ WCOOP   LDA     SPLY2+6         ;THIS MESSAGE IS FOR TWO PLAYERS ONLY
         CLR     PLYG1           ;RESET PLAYER HIT PLAYER COUNTER(S)
         CLR     PLYG2
         LDX     #COOP1
-        JSR     WAVMSG
+        JSR     DisplayWaveMessage
         LDX     #COOP2
-        JMP     WAVMSG
+        JMP     DisplayWaveMessage
 ;*
 WCOSCR  EQU     *               ;END OF WAVE CLEAN-UP
         LDA     PLYG1           ;PLAYER 1 OR
@@ -2656,14 +2732,14 @@ WCOSCR  EQU     *               ;END OF WAVE CLEAN-UP
         BEQ     .2S             ; BR=NO, DEAD
         LDX     #P1DEC          ;AWARD POINTS TO PLAYER 1
         LDA     #$30            ; 3,000 POINTS!!!
-        JSR     SCRHUN
+        JSR     ScoreHundreds
 .2S     LDA     SPLY2+6         ;PLAYER 2 IS STILL ALIVE?
         BEQ     .3S             ; BR=NO, DEAD
         LDX     #P2DEC          ;AWARD POINTS TO PLAYER 2
         LDA     #$30            ; 3,000 POINTS!!!
-        JSR     SCRHUN
+        JSR     ScoreHundreds
 .3S     LDX     #COOP4          ;BONUS POINTS MESSAGE
-ENDTS   JSR     WAVMSG
+ENDTS   JSR     DisplayWaveMessage
         LDA     #120/6          ;WAIT FOR 2 SECONDS
         JMP     WAVDEL          ;THEN RETURN TO BEGIN NEW WAVE
 ;*
@@ -2674,7 +2750,7 @@ WAVSUR  LDD     #WSUSCR         ;END OF SURVIVAL WAVE
         CLR     PLYD1           ;RESET PLAYER DEATH COUNTER(S)
         CLR     PLYD2
         LDX     #SURV1
-        JMP     WAVMSG
+        JMP     DisplayWaveMessage
 ;*
 ;*      END OF SURVIVAL WAVE SCOREING
 ;*
@@ -2685,7 +2761,7 @@ WSUSCR  LDX     #SURV3          ;ASSUME NO POINTS
         BNE     ENDTS           ; BR=YES, NO SCORE
         LDX     #P1DEC          ;AWARD POINTS TO PLAYER 1
         LDA     #$30            ; 3,000 POINTS!!!
-        JSR     SCRHUN
+        JSR     ScoreHundreds
         LDX     #SURV4          ;AWARDED POINTS MESSAGE (PLAYER 1)
         BRA     ENDTS
 ;*
@@ -2695,13 +2771,13 @@ WSUSCR  LDX     #SURV3          ;ASSUME NO POINTS
         BNE     ENDTS           ; BR=YES, NO SCORE
         LDX     #P2DEC          ;AWARD POINTS TO PLAYER 2
         LDA     #$30            ; 3,000 POINTS!!!
-        JSR     SCRHUN
+        JSR     ScoreHundreds
         LDX     #SURV5          ;AWARDED POINTS MESSAGE (PLAYER 5)
         BRA     ENDTS
 ;*
 ;*      START GLADIATOR WAVE
 ;*
-WGLAD   LDA     SPLY1+6         ;THIS MESSAGE IS FOR TWO PLAYERS ONLY
+WaveSetup_GladiatorWave   LDA     SPLY1+6         ;THIS MESSAGE IS FOR TWO PLAYERS ONLY
         BEQ     WAVRT2          ; BR=PLAYER 1 DEAD
         LDA     SPLY2+6
         BEQ     WAVRT2          ; BR=PLAYER 2 DEAD
@@ -2711,13 +2787,13 @@ WGLAD   LDA     SPLY1+6         ;THIS MESSAGE IS FOR TWO PLAYERS ONLY
         STA     PLYG1           ; TO AWARD SCORE UPON 1ST ENCOUNTER
         STA     PLYG2
         LDX     #GLAD1
-        JSR     WAVMSG
+        JSR     DisplayWaveMessage
         LDA     #90/6
         JSR     WAVDEL
         LDX     #GLAD2
-        JSR     WAVMSG
+        JSR     DisplayWaveMessage
         LDX     #GLAD3
-        JSR     WAVMSG
+        JSR     DisplayWaveMessage
         LDA     #90/6
         JMP     WPAUS2
 WAVRT2  RTS
@@ -2733,7 +2809,7 @@ WGLSCR
         LDX     #GLAD4          ;NO ONE GOT THE BOUNTY
         BRA     .3S
 .2S     LDX     #GLAD6          ;PLAYER 2 BONUS POINTS MESSAGE
-.3S     JSR     WAVMSG
+.3S     JSR     DisplayWaveMessage
         CLR     PLYG1           ;NO MORE AWARDING BOUNTY POINTS
         CLR     PLYG2
         LDA     #120/6          ;WAIT FOR 2 SECONDS
@@ -2741,18 +2817,18 @@ WGLSCR
 ;*
 ;*      START OF EGG WAVE
 ;*
-WAVEGG  LDX     #EGG1           ;EGG WAVE
-        JSR     WAVMSG
+WaveSetup_EggWave  LDX     #EGG1           ;EGG WAVE
+        JSR     DisplayWaveMessage
         LDA     #180/6
         JSR     WAVDEL
         JSR     WATWAV          ;WAIT TILL TRUE END OF WAVE
-        JSR     EMSGS           ;ERASE AL MESSAGES
+        JSR     EraseAllWaveMessages           ;ERASE AL MESSAGES
 ;*
         LDX     PWAVE,U         ;FIND INTELLIGENCE
         LDY     #P6DEC          ;ASSUME THE BEST
-        LDA     WBOUND,X
+        LDA     WaveState_BounderCount,X
         BNE     .1S
-        LDA     WLORD,X         ;IT IS THE LORD HIMSELF
+        LDA     WaveState_ShadowLordCount,X         ;IT IS THE LORD HIMSELF
         BRA     .2S
 .1S     LDY     #P5DEC          ;HUNTER?
         BITA    #$0F
@@ -2772,9 +2848,9 @@ WAVEGG  LDX     #EGG1           ;EGG WAVE
         BEQ     .35S            ; BR=YES, ALL TIMES ARE BASIED ON 1 PLAYER
         LSRB                    ;ON 2 PLAYERS USE 1/2 OF THE TIME
 .35S    STB     PEGGTM,U        ;EGG TIMER
-        LDA     WPERSUE,X       ;NBR TO START PERSUING
+        LDA     WaveState_PersuerCount,X       ;NBR TO START PERSUING
         ANDA    #$0F
-        STA     WSMART
+        STA     CurrentWave_PersuerCount
         LDX     #EGPTBL         ;CLEAR EGG PLACEMENT TABLE
 .4S     CLR     ,X+
         CMPX    #EGLEND         ;& CLEAR LEVEL RANDOMNESS
@@ -2832,34 +2908,34 @@ WAVEGG  LDX     #EGG1           ;EGG WAVE
 ;*      TROMSG
 ;*
 TROMSG  FCB     ($1E+$35)!$9B,($12+$35)!$9B,($13+$35)!$9B,($1D+$35)!$9B         ;;Fixme was: !X$9B
-        FCB      ($0A+$35)!$9B,($13+$35)!$9B,($1D+$35)!$9B,($0A+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($14+$35)!$9B,($19+$35)!$9B,($1F+$35)!$9B,($1D+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($1E+$35)!$9B,($2E+$35)!$9B,($00+$35)!$9B                      ;;Fixme was: !X$9B
+        FCB     ($0A+$35)!$9B,($13+$35)!$9B,($1D+$35)!$9B,($0A+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($14+$35)!$9B,($19+$35)!$9B,($1F+$35)!$9B,($1D+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($1E+$35)!$9B,($2E+$35)!$9B,($00+$35)!$9B                      ;;Fixme was: !X$9B
         FCB     ($0E+$35)!$9B,($0F+$35)!$9B,($1D+$35)!$9B,($13+$35)!$9B         ;;Fixme was: !X$9B
-        FCB      ($11+$35)!$9B,($18+$35)!$9B,($0F+$35)!$9B,($0E+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($0A+$35)!$9B,($0C+$35)!$9B,($23+$35)!$9B,($0A+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($21+$35)!$9B,($13+$35)!$9B,($16+$35)!$9B,($16+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($13+$35)!$9B,($0B+$35)!$9B,($17+$35)!$9B,($1D+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($0A+$35)!$9B,($0F+$35)!$9B,($16+$35)!$9B,($0F+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($0D+$35)!$9B,($1E+$35)!$9B,($1C+$35)!$9B,($19+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($18+$35)!$9B,($13+$35)!$9B,($0D+$35)!$9B,($1D+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($0A+$35)!$9B,($13+$35)!$9B,($18+$35)!$9B,($0D+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($2E+$35)!$9B,($00+$35)!$9B                                    ;;Fixme was: !X$9B
+        FCB     ($11+$35)!$9B,($18+$35)!$9B,($0F+$35)!$9B,($0E+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($0A+$35)!$9B,($0C+$35)!$9B,($23+$35)!$9B,($0A+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($21+$35)!$9B,($13+$35)!$9B,($16+$35)!$9B,($16+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($13+$35)!$9B,($0B+$35)!$9B,($17+$35)!$9B,($1D+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($0A+$35)!$9B,($0F+$35)!$9B,($16+$35)!$9B,($0F+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($0D+$35)!$9B,($1E+$35)!$9B,($1C+$35)!$9B,($19+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($18+$35)!$9B,($13+$35)!$9B,($0D+$35)!$9B,($1D+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($0A+$35)!$9B,($13+$35)!$9B,($18+$35)!$9B,($0D+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($2E+$35)!$9B,($00+$35)!$9B                                    ;;Fixme was: !X$9B
         FCB     ($2A+$35)!$9B,($0D+$35)!$9B,($2B+$35)!$9B                       ;;Fixme was: !X$9B
-        FCB      ($0A+$35)!$9B,($01+$35)!$9B,($09+$35)!$9B                      ;;Fixme was: !X$9B
-        FCB      ($08+$35)!$9B,($02+$35)!$9B,($0A+$35)!$9B,($21+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($13+$35)!$9B,($16+$35)!$9B,($16+$35)!$9B,($13+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($0B+$35)!$9B,($17+$35)!$9B,($1D+$35)!$9B,($0A+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($0F+$35)!$9B,($16+$35)!$9B,($0F+$35)!$9B,($0D+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($1E+$35)!$9B,($1C+$35)!$9B,($19+$35)!$9B,($18+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($13+$35)!$9B,($0D+$35)!$9B,($1D+$35)!$9B,($0A+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($13+$35)!$9B,($18+$35)!$9B,($0D+$35)!$9B,($2E+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($00+$35)!$9B                                                  ;;Fixme was: !X$9B
+        FCB     ($0A+$35)!$9B,($01+$35)!$9B,($09+$35)!$9B                      ;;Fixme was: !X$9B
+        FCB     ($08+$35)!$9B,($02+$35)!$9B,($0A+$35)!$9B,($21+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($13+$35)!$9B,($16+$35)!$9B,($16+$35)!$9B,($13+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($0B+$35)!$9B,($17+$35)!$9B,($1D+$35)!$9B,($0A+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($0F+$35)!$9B,($16+$35)!$9B,($0F+$35)!$9B,($0D+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($1E+$35)!$9B,($1C+$35)!$9B,($19+$35)!$9B,($18+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($13+$35)!$9B,($0D+$35)!$9B,($1D+$35)!$9B,($0A+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($13+$35)!$9B,($18+$35)!$9B,($0D+$35)!$9B,($2E+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($00+$35)!$9B                                                  ;;Fixme was: !X$9B
         FCB     ($0B+$35)!$9B,($16+$35)!$9B,($16+$35)!$9B,($0A+$35)!$9B         ;;Fixme was: !X$9B
-        FCB      ($1C+$35)!$9B,($13+$35)!$9B,($11+$35)!$9B,($12+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($1E+$35)!$9B,($1D+$35)!$9B,($0A+$35)!$9B,($1C+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($0F+$35)!$9B,($1D+$35)!$9B,($0F+$35)!$9B,($1C+$35)!$9B        ;;Fixme was: !X$9B
-        FCB      ($20+$35)!$9B,($0F+$35)!$9B,($0E+$35)!$9B,$2E                  ;;Fixme was: ($20+$35)!X$9B,($0F+$35)!X$9B,($0E+$35)!X$9B,!W($80+$35!X$9B) (Was getting range overflow error, so I just put in "$2E")
+        FCB     ($1C+$35)!$9B,($13+$35)!$9B,($11+$35)!$9B,($12+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($1E+$35)!$9B,($1D+$35)!$9B,($0A+$35)!$9B,($1C+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($0F+$35)!$9B,($1D+$35)!$9B,($0F+$35)!$9B,($1C+$35)!$9B        ;;Fixme was: !X$9B
+        FCB     ($20+$35)!$9B,($0F+$35)!$9B,($0E+$35)!$9B,$2E                  ;;Fixme was: ($20+$35)!X$9B,($0F+$35)!X$9B,($0E+$35)!X$9B,!W($80+$35!X$9B) (Was getting range overflow error, so I just put in "$2E")
 ;*
 ;*      CREATE AN EGG ON THE GROUND
 ;*       INPUT  REG.A, LEDGE POSITION ( A NBR FROM 0-65)
@@ -3073,7 +3149,7 @@ EGGSMN  STB     ,Y
         BNE     .1S             ; BR=NO
         COM     PEGG,Y          ;INDICATE ADDITIONAL SCORE
         LDA     #$05            ;SCORE 500 POINTS
-        JSR     SCRHUN          ; (IN PLAYERS WORKSPACE)
+        JSR     ScoreHundreds          ; (IN PLAYERS WORKSPACE)
 ;*
 .1S     DEC     NRIDER          ;1 LESS ENEMY RIDER
       IF DEBUG          ;???????????? DEBUG PARAMATER ?????????
@@ -3102,13 +3178,13 @@ EGGWAK  LDD     #EGGHIT         ;WAKE-UP AT HIT EGG AREA
         PULS    X,U,PC
 ;*
 EGGVAL  FCB     $52             ;250
-         FDB    SCRTEN
+        FDB     ScoreTens
         FCB     $05             ;500
-         FDB    SCRHUN
+        FDB     ScoreHundreds
         FCB     $57             ;750
-         FDB    SCRTEN
+        FDB     ScoreTens
         FCB     $10             ;PEG AT 1,000
-         FDB    SCRHUN
+        FDB     ScoreHundreds
 ;*
 ;*      GRAVITY FOR THE EGG
 ;*       INPUT REG.B ADDITION TO GRAVITY (VELOCITY)
@@ -3401,7 +3477,7 @@ EGGHIT
         LDX     #.112S          ;DISPLAY THE SCORE IN THE AIR
         LDD     #CATID*256+$FF
         JSR     VCUPROC
-        LDD     #MSG500*256+EGGCOL*$11  ;GET SCORE VALUE & COLOR
+        LDD     #Message_500*256+EGGCOL*$11  ;GET SCORE VALUE & COLOR
         STD     PRDIR,Y
         LDD     PPOSX,U
         STD     PPOSX,Y
@@ -3727,7 +3803,7 @@ RADDR   JSR     VRAND
 ;*      LINE TRACKING INTELLIGENCE
 ;*
 LINET   LDA     NSMART          ;GET NUMBER OF SMART ENEMIES
-        CMPA    WSMART          ;BELOW MINIMUM INTELLIGENCE?
+        CMPA    CurrentWave_PersuerCount          ;BELOW MINIMUM INTELLIGENCE?
         BLO     LNTSMT          ; BR=YES, GET SMARTER
         DEC     PLAVT,U
         BGT     .1S
@@ -4638,7 +4714,7 @@ CLIFER  LDX     PFRAME,U
 .1S     RTS
 ;*
 LOCCLR  LDB     WCLENY,Y                ;CALC LOWEST POINT
-        EORB    #4                                                              ;;Fixme was: EORB  #!WDMAFIX
+        EORB    #4                                                              ;;Fixme was: EORB  #!DmaHorizontalWidthFIX
         ADDB    WCY,Y
         JSR     VCL1ALL         ;clear cliff away
         LDD     #$1200          ;with a constant substitution of 00 color
@@ -4650,9 +4726,9 @@ LOCCLR  LDB     WCLENY,Y                ;CALC LOWEST POINT
         STD     PFRAME,U
         STD     WCDEST,X
         LDD     WCLEN,Y         ;vertical length is extended to cover
-        EORB    #4              ;the falling debris                             ;;Fixme was: EORB  #!WDMAFIX
+        EORB    #4              ;the falling debris                             ;;Fixme was: EORB  #!DmaHorizontalWidthFIX
         ADDB    #10+1
-        EORB    #4                                                              ;;Fixme was: EORB  #!WDMAFIX
+        EORB    #4                                                              ;;Fixme was: EORB  #!DmaHorizontalWidthFIX
         STD     WCLEN,X
         RTS
 ;*******************************END OF CLIFF DESTROIER***********************
@@ -4702,10 +4778,10 @@ SPDGLA  CLR     PLYG1           ;ONLY 1 GLADIATOR IN THE WAVE
         LDX     PDECSN,X        ;GET WINNING GLADIATOR/PLAYERS SCORE AREA
         PSHS    X
         LDA     #$30            ;SCORE 3,000
-        JSR     SCRHUN
-         LDX    #SCRAIR         ;DISPLAY SCORE ON THE SCREEN
-         LDD    #EGGID*256+$FF
-         JSR    VCUPROC
+        JSR     ScoreHundreds
+        LDX     #SCRAIR         ;DISPLAY SCORE ON THE SCREEN
+        LDD     #EGGID*256+$FF
+        JSR     VCUPROC
         LDD     PPOSX,U         ;PUT SCORE IN LOSERS AREA
         ADDD    #6              ; (CENTER IN LOSERS KILL AREA)
         STD     PPOSX,Y
@@ -4736,8 +4812,9 @@ SPDIE2  LDX     #DEATH          ;create a primary process for player death
         STD     PPOSY,Y
         LDX     PDECSN,U        ;SCORE 50 POINTS FOR DYING
         LDA     #$50
-        JSR     SCRTEN
+        JSR     ScoreTens
       IF DEBUG = 0                                                              ;;Fixme was: IFE DEBUG
+ZapWhenPlayerDies
         JSR     LZAP
       ENDIF
 ;*
@@ -4762,7 +4839,7 @@ SPDIE2  LDX     #DEATH          ;create a primary process for player death
 ;*                              CHECK FOR AN END OF GAME
 ;*
 .2S     LDX     PDECSN,U
-        LDX     DSCORE,X        ;GET PLAYER SCORE/LIVES AREA
+        LDX     ScoreRamLocation,X        ;GET PLAYER SCORE/LIVES AREA
       IF DEBUG <> 0     ;???????????? DEBUG PARAMATER ?????????                 ;;Fixme was: IFN DEBUG
         LDA     6,X             ;HOW MANY AUX LIVES ARE LEFT???
         BNE     .22S            ;BR=NONE
@@ -5199,6 +5276,7 @@ LZAP    LDX     LZAP1
         BNE     .1S
         CMPA    #$32            ;LZAPPER DATA
         BEQ     .2S
+ZapNeutralizeLzap
         LDX     [PFREE]
         INC     1,X
 .2S     RTS
@@ -5361,7 +5439,7 @@ PLYRUL  JSR     INCLIV          ;ADD 1 LIFE TO PLAYER
 ;*       REG.X - INTACT
 ;*
 INCLIV  PSHS    X,CC            ;SAVE INTERUPT STATUS
-        LDX     DSCORE,X        ;GET PLAYER SCORE/LIVES AREA
+        LDX     ScoreRamLocation,X        ;GET PLAYER SCORE/LIVES AREA
         BEQ     INLDON
         INC     5,X             ;ADD TO PLAYERS NUMBER OF LIVES
         INC     6,X             ;(ADD TO AUX NUMBER OF LIVES LEFT
@@ -5376,13 +5454,13 @@ INLMAX  LDA     5,X
         SUBA    #3
         CLRB
         LDX     1,S             ;GET REG.X DECISION BLOCK BACK
-        ADDD    DSCLOC,X
+        ADDD    ScoreScreenLocation,X
         ORCC    #$F0            ;NO INTERUPTS FOR DMA
-        STD     DDMA
+        STD     DmaDestinationOfCharacter
         LDD     #$0307!DMAFIX   ;CHARACTER SIZE                                 ;;Fixme was: !XDMAFIX
-        STD     WDMA
-        LDD     DSCPLY,X        ;GET PLAYERS SOURCE CHARACTER ADDRESS
-        STD     SDMA
+        STD     DmaHorizontalWidth
+        LDD     LivesRemainingScreenLocation,X        ;GET PLAYERS SOURCE CHARACTER ADDRESS
+        STD     DmaSourceOfCharacter
         LDA     #$0A            ;DMA CONTROL
         STA     DMA
 INLDON  PULS    X,CC,PC
@@ -5395,7 +5473,7 @@ INLDON  PULS    X,CC,PC
 ;*       REG.X - INTACT
 ;*
 DECLIV  PSHS    X
-        LDX     DSCORE,X        ;GET PLAYER SCORE/LIVES AREA
+        LDX     ScoreRamLocation,X        ;GET PLAYER SCORE/LIVES AREA
         BEQ     DCLNON
         LDA     5,X
         BEQ     DCLNON
@@ -5411,16 +5489,16 @@ DECLIV  PSHS    X
         ADDA    5,X
         CLRB
         LDX     ,S              ;GET REG.X DECISION BLOCK BACK
-        ADDD    DSCLOC,X
+        ADDD    ScoreScreenLocation,X
         PSHS    CC              ;SAVE INTERUPT STATUS
         ORCC    #$F0            ;NO INTERUPTS FOR DMA
-        STD     DDMA
+        STD     DmaDestinationOfCharacter
         LDD     #$0307!DMAFIX   ;CHARACTER SIZE                                 ;;Fixme was: !XDMAFIX
-        STD     WDMA
-        LDD     DSCPLY,X        ;GET PLAYERS SOURCE CHARACTER ADDRESS
-        STD     SDMA
+        STD     DmaHorizontalWidth
+        LDD     LivesRemainingScreenLocation,X        ;GET PLAYERS SOURCE CHARACTER ADDRESS
+        STD     DmaSourceOfCharacter
         LDD     #$1A*256+(DKB*$11)      ;DMA CONTROL & ERASE CONSTANT
-        STB     KDMA
+        STB     DmaConstantSubstitution
         STA     DMA
         PULS    CC
 DCLDON  LDA     #1              ;STATUS NE
@@ -5433,14 +5511,14 @@ DCLNON  PULS    X,PC
 ;*
 GENDMA  PSHS    CC
         ORCC    #$F0            ;NO INTERUPTS FOR DMA
-        STD     DDMA
+        STD     DmaDestinationOfCharacter
         LDD     ,X++
-        EORA    #$04                                                            ;;Fixme was: EORA  #!HDMAFIX
-        EORB    #$04                                                            ;;Fixme was: EORB  #!HDMAFIX
-        STD     WDMA
-        STX     SDMA
+        EORA    #$04                                                            ;;Fixme was: EORA  #!DmaVerticalHeightFIX
+        EORB    #$04                                                            ;;Fixme was: EORB  #!DmaVerticalHeightFIX
+        STD     DmaHorizontalWidth
+        STX     DmaSourceOfCharacter
         TFR     Y,D
-        STB     KDMA
+        STB     DmaConstantSubstitution
         STA     DMA
         PULS    CC,PC
 ;*
@@ -5547,39 +5625,39 @@ TRPLY   FDB     SPDFDG
 SPDFDG  FDB     0,8,15,30,60            ;SPEED FUDGE
 ;*
 G1DEC   FDB     G1JOY,G1JOY,SPLY1,$39D9,SCOPL1,PLYR1,TREPL1,CREP1 ;PLAYER 1
-        FDB     DEATH1,EGGS1,STPLY1,SCRHUN,PLYG1,PLYTIM
+        FDB     DEATH1,EGGS1,STPLY1,ScoreHundreds,PLYG1,PLYTIM
         FDB     SNPLWU,SNPLWD,SNPLSK,SNPLS2,SNPRU1,SNPRU2,SNPFAL,0,SNPCR1
         FCB     PL1*$11,$20,MSP1
 G2DEC   FDB     G2JOY,G2JOY,SPLY2,$60D9,SCOPL2,PLYR2,TREPL2,CREP2 ;PLAYER 2
-        FDB     DEATH2,EGGS2,STPLY2,SCRHUN,PLYG2,PLYTIM
+        FDB     DEATH2,EGGS2,STPLY2,ScoreHundreds,PLYG2,PLYTIM
         FDB     SNPLWU,SNPLWD,SNPLSK,SNPLS2,SNPRU1,SNPRU2,SNPFAL,0,SNPCR2
         FCB     PL2*$11,$20,MSP2
 P1DEC   FDB     P1JOY,P1JOY,SPLY1,$39D9,SCOPL1,PLYR1,TREPL1,CREP1 ;PLAYER 1
-        FDB     DEATH1,EGGS1,STPLY1,SCRHUN,PLYG1,PLYTIM
+        FDB     DEATH1,EGGS1,STPLY1,ScoreHundreds,PLYG1,PLYTIM
         FDB     SNPLWU,SNPLWD,SNPLSK,SNPLS2,SNPRU1,SNPRU2,SNPFAL,SNPTREF,SNPCR1
         FCB     PL1*$11,$20,MSP1
 P2DEC   FDB     P2JOY,P2JOY,SPLY2,$60D9,SCOPL2,PLYR2,TREPL2,CREP2 ;PLAYER 2
-        FDB     DEATH2,EGGS2,STPLY2,SCRHUN,PLYG2,PLYTIM
+        FDB     DEATH2,EGGS2,STPLY2,ScoreHundreds,PLYG2,PLYTIM
         FDB     SNPLWU,SNPLWD,SNPLSK,SNPLS2,SNPRU1,SNPRU2,SNPFAL,SNPTREF,SNPCR2
         FCB     PL2*$11,$20,MSP2
 P3DEC   FDB     AUTOFF,AUTOFF,0000,$0000,SCOPL2,PLYR3,TREPL3,EMYDIE
-        FDB     DEATH3,0,STENMY,SCRTEN,0,EMYTIM
+        FDB     DEATH3,0,STENMY,ScoreTens,0,EMYTIM
         FDB     SNELWU,SNELWD,SNEMSK,SNEMS2,SNERU1,SNERU2,SNEFAL,0,SNECRE
         FCB     WHI*$11,$10,MSGAMO
 P4DEC   FDB     LINET,BOUNDR,0000,$0000,SCOPL2,PLYR3,TREPL3,EMYDIE
-        FDB     DEATH3,0,STENMY,SCRTEN,0,EMYTIM
+        FDB     DEATH3,0,STENMY,ScoreTens,0,EMYTIM
         FDB     SNELWU,SNELWD,SNEMSK,SNEMS2,SNERU1,SNERU2,SNEFAL,0,SNECRE
         FCB     WHI*$11,$05,MSGAMO
 P5DEC   FDB     LINET,B2UNDR,0000,$0000,SCOPL2,PLYR4,TREPL3,EMYDIE
-        FDB     DEATH3,0,STENMY,SCRTEN,0,EMYTIM
+        FDB     DEATH3,0,STENMY,ScoreTens,0,EMYTIM
         FDB     SNELWU,SNELWD,SNEMSK,SNEMS2,SNERU1,SNERU2,SNEFAL,0,SNECRE
         FCB     WHI*$11,$57,MSGAMO
 P6DEC   FDB     LINET,SHADOW,0000,$0000,SCOPL2,PLYR5,TREPL3,EMYDIE
-        FDB     DEATH3,0,STENMY,SCRHUN,0,EMYTIM
+        FDB     DEATH3,0,STENMY,ScoreHundreds,0,EMYTIM
         FDB     SNELWU,SNELWD,SNEMSK,SNEMS2,SNERU1,SNERU2,SNEFAL,0,SNECRE
         FCB     WHI*$11,$15,MSGAMO
 P7DEC   FDB     LINET,PTERO,0000,$0000,SCOPL2,0,TREPL3,EMYDIE
-        FDB     DEATH4,0,STENMY,SCRHUN,0,EMYTIM
+        FDB     DEATH4,0,STENMY,ScoreHundreds,0,EMYTIM
         FDB     SNELWU,SNELWD,SNEMSK,SNEMS2,0,0,SNEFAL,0,SNECRE
         FCB     WHI*$11,$10,MSGAMO
 ;*
@@ -5779,14 +5857,14 @@ TREFF   LDX     PSTATE,U
         STB     (WCY-10),X
 ;*
         LDB     WCLENY,X        ;MAKE SURE BUZARD/OSTRICH LENGTH IS NOT TOO LONG
-        EORB    #4                                                              ;;Fixme was: EORB  #!WDMAFIX
+        EORB    #4                                                              ;;Fixme was: EORB  #!DmaHorizontalWidthFIX
         ADDB    WCY,X
         CMPB    PPOSY+1,U
         BLS     .3S
         LDB     PPOSY+1,U
         INCB
         SUBB    WCY,X           ;CALC NEW LENGTH THAT IS NOT BELOW TRANSPORTER
-        EORB    #4                                                              ;;Fixme was: EORB  #!WDMAFIX
+        EORB    #4                                                              ;;Fixme was: EORB  #!DmaHorizontalWidthFIX
         STB     WCLENY,X
 ;*
 .3S     LDY     PDECSN,U
@@ -5804,7 +5882,7 @@ TREFF2  PCNAP   1               ;EFFECTS TIME
         ASRA
         RORB
         STB     WCX,X
-        LDA     #(18/2)!4               ;PROPER X LENGTH FOR BOX ERASE                  ;;Fixme was: LDA  #18/2!X(!WDMAFIX) (Should be $0D - $8C29)
+        LDA     #(18/2)!4               ;PROPER X LENGTH FOR BOX ERASE                  ;;Fixme was: LDA  #18/2!X(!DmaHorizontalWidthFIX) (Should be $0D - $8C29)
         STA     WCLENX,X
         DEC     PFRAME,U
         LBNE    TREFF
@@ -6277,6 +6355,11 @@ ENDAD1  EQU     *       ;CURRENT END ADDRESS
 PATCHS  EQU     *       ;START ADDRESS OF PATCHES
         
         ; EJP -- Cannot understand why precisely what this is doing.
+        ; Okay, this is clearly simply checking that the code doesn't overwrite the end of ATT.SRC, 
+        ; however, we have a hard-coded ORG here, so it's obvious.
+        ;
+        ; I'm going to leave this for now, and ATT.SRC still ends at $D6EF as of 2025-07-16
+        ;
         IF *-$D6EF <= 0                                                         ;;Fixme was: IFLE  *-$D6EF
          FCB    $1111   ;ERROR, BUMPING INTO "ATT.SRC" MODULE AT $D6EF
         ENDIF
@@ -6290,7 +6373,7 @@ PATCHS  EQU     *       ;START ADDRESS OF PATCHES
 ;*
 PATC11  CLR     PLYG1           ;RESET 3,000 POINT TRIGGER
         CLR     PLYG2
-        JMP     EMSGS           ;ERASE ANY END OF WAVE MESSAGES(OLD INSTRUCTION)
+        JMP     EraseAllWaveMessages           ;ERASE ANY END OF WAVE MESSAGES(OLD INSTRUCTION)
 ;*
 ;*      10TH PATCH, IF BAITER PTERODACTYL IS KILLED, SPEED THINGS UP!
 ;*       IF KILLED, THINGS REVERT BACK TO NORAML SPEED
@@ -6406,6 +6489,12 @@ PATCH1  STD     PPICH,Y         ;OLD INSTRUCTION
         RTS
 
         ; EJP -- Cannot understand why precisely what this is doing.
+        ;
+        ; Okay, this is just ensuring that the patches don't overstep into the next 
+        ; block of source, which starts at $D800.
+        ;
+        ; I'm leaving this for now, and encourage it moving forward - it's a meaningful check.
+        ;
         IF *-$D800 > 0                                                          ;;Fixme was: IFGT  *-$D800
          FCB    $1111   ;ERROR, PATCH AREA ($D796-$D800) MODULE IS TOO LONG
         ENDIF
@@ -6563,7 +6652,7 @@ ADGLAV  JSR     WPLYR           ;WRITE THE PLAYER
 ;********            ENDIF                      ???????????? END OF DEBUG ??????
 ;??????
         LDB     WCLENY,X        ;HAS THE GUYS LENGTH CHANGED? (IN LAVA)
-        CMPB    #7!4            ;GUYS LENGTH IS ASSUMED TO BE 7 PIXELS TALL     ;;Fixme was: CMPB  #7!X(!WDMAFIX)
+        CMPB    #7!4            ;GUYS LENGTH IS ASSUMED TO BE 7 PIXELS TALL     ;;Fixme was: CMPB  #7!X(!DmaHorizontalWidthFIX)
         BEQ     ADGDED          ; BR=NO, THE GUY IS STILL ABOVE THE LAVA
         ANDA    #$7F            ;NOW THIS GUY IS DEAD
         STA     PID,U
@@ -6592,7 +6681,7 @@ FCLIP   BSR     CLIPER          ;CLIP THE OSTRICH
 ;*      GENERAL CLIPPING ROUTINE FOR AFTER CLxCLS or WRxCLS WITH OFFSETS
 ;*
 CLIPER  LDA     WCLENY,X        ;FIND BOTTOM LINE OF OBJECT
-        EORA    #4                                                              ;;Fixme was: EORA  #!WDMAFIX
+        EORA    #4                                                              ;;Fixme was: EORA  #!DmaHorizontalWidthFIX
         ADDA    WCY,X
         CMPA    #FLOOR+1        ;BELOW THE FLOOR
         BLO     CLPRTS          ; BR=NO
@@ -6607,7 +6696,7 @@ CLPRTS  RTS
 ;*
 CLPIT   NEGA
         ADDA    #FLOOR+1        ;NEW LENGTH
-        EORA    #4                                                              ;;Fixme was: EORA  #!WDMAFIX
+        EORA    #4                                                              ;;Fixme was: EORA  #!DmaHorizontalWidthFIX
         STA     WCLENY,X
         RTS
 ;*
@@ -6678,7 +6767,7 @@ ADLFRE  LDA     PID,U           ;IS THE PERSON ALIVE
         BPL     .33S
         LDA     #$50            ;SCORE 50 POINTS FOR BREAKING FREE
         LDX     PDECSN,U
-        JSR     SCRTEN
+        JSR     ScoreTens
 .33S    LDX     PLINK,U         ;KILL LAVA TROLL GRAB TASK
         LDA     PID,X           ;ANOTHER PROCESS CAN SNEAK IN,
         CMPA    #LAVID+1        ;SO, CHECK TO MAKE SURE THIS IS THE TROLL
@@ -7266,7 +7355,11 @@ P1JOY   LDA     WCPIAB          ;SELECT HALF OF MUX
 P2JOY   LDA     WCPIAB
         ANDA    #$F7
 P2SAM   STA     WCPIAB
-        LDA     WPIAA           ;READ JOYSTICK
+;
+; If Pause Mod is enabled, this will be overridden by a jmp to our patch.
+;
+EJP_PauseModHook    LDA     WPIAA           ;READ JOYSTICK
+;
         CLRB                    ;ASSUME JUMP BUTTON NOT PRESSED
         BITA    #$04            ;IS JUMP BUTTON PRESSED?
         BEQ     P2NJMP          ; BR=NO
@@ -7359,10 +7452,10 @@ ENDAD2  EQU     *       ;CURRENT END ADDRESS
 ;*      DESTROIES REG.Y & REG.D
 ;*      SAVES REG.X
 ;*
-SCRHUN  LDY     DSCORE,X        ;GET SCORE AREA
-        BEQ     SCRRTS
+ScoreHundreds  LDY     ScoreRamLocation,X        ;GET SCORE AREA
+        BEQ     ScoreRoutineExit
         ADDA    2,Y
-        BRA     SCRCOM
+        BRA     ScoreCommon
 ;*
 ;*      INCREMENT SCORE BY HUNDREDS AND TENS
 ;*       INPUT REG.X - DECISION BLOCK
@@ -7370,8 +7463,8 @@ SCRHUN  LDY     DSCORE,X        ;GET SCORE AREA
 ;*      DESTROIES REG.Y & REG.D
 ;*      SAVES REG.X
 ;*
-SCRTEN  LDY     DSCORE,X        ;GET SCORE AREA
-        BEQ     SCRRTS
+ScoreTens  LDY     ScoreRamLocation,X        ;GET SCORE AREA
+        BEQ     ScoreRoutineExit
         TFR     A,B
         ANDA    #$F0            ;SCORE TENS
         ANDB    #$0F            ;       & HUNDREDS
@@ -7380,7 +7473,7 @@ SCRTEN  LDY     DSCORE,X        ;GET SCORE AREA
         STA     3,Y
         TFR     B,A
         ADCA    2,Y
-SCRCOM  DAA
+ScoreCommon  DAA
         STA     2,Y
         INC     4,Y             ;SCORE OCCURED
         LDA     1,Y
@@ -7394,12 +7487,12 @@ SCRCOM  DAA
         ADDA    #$10            ;PEGG TEN MILLIONS FOR ZERO SURPRESSION DETECT
 .1S     STA     ,Y
         LDD     LEVPAS          ;IF LEVEL PASS =0 THEN NO EXTRA MEN
-        BEQ     SCRRTS
+        BEQ     ScoreRoutineExit
 SCRLEV  LDD     1,Y             ;GET 100'S OF THOUSANDS TO 100'S.
         ADDA    7,Y             ; ADD OFFSET FOR NO OVERFLOW
         DAA
         CMPD    8,Y             ;PAST LEVEL FOR EXTRA MAN?
-        BLO     SCRRTS          ; BR=NO
+        BLO     ScoreRoutineExit          ; BR=NO
         LDA     9,Y             ;FIGURE OUT NEXT LEVEL
         ADDA    LEVPAS+1
         DAA
@@ -7409,7 +7502,7 @@ SCRLEV  LDD     1,Y             ;GET 100'S OF THOUSANDS TO 100'S.
         DAA
         STA     8,Y
         CMPA    #$30            ;THE MAGIC NUMBER IS 3000XX BEFORE NEW OFFSET
-        BLO     SCRPLY          ;AWARD THE EXTRA PLAYER
+        BLO     ScoreExtraPlayer          ;AWARD THE EXTRA PLAYER
         ADDA    #$A0-$20        ;SUBTRACT  BCD 20
         DAA
         STA     8,Y
@@ -7417,7 +7510,7 @@ SCRLEV  LDD     1,Y             ;GET 100'S OF THOUSANDS TO 100'S.
         ADDA    #$A0-$20        ;SUBTRACT  BCD 20
         DAA
         STA     7,Y
-SCRPLY  PSHS    X,Y             ;SAVE DECISION BLOCK
+ScoreExtraPlayer  PSHS    X,Y             ;SAVE DECISION BLOCK
         JSR     INCLIV          ;AWARD THE PLAYER
         LDX     #SNREPL         ;MAKE REPLAY SOUND
         JSR     VSND
@@ -7426,7 +7519,7 @@ SCRPLY  PSHS    X,Y             ;SAVE DECISION BLOCK
         PULS    X,Y
         BRA     SCRLEV          ;RE-CHECK FOR LEVEL PASS (LOW LEVELS)
 ;*
-SCRRTS  RTS
+ScoreRoutineExit  RTS
 ;*
 ;*      SCORE TABLE FOR PLAYER 1
 ;*
@@ -7459,7 +7552,7 @@ SCRPL2  FDB     SPLY2+4                 ;SCORE CHANGED FLAG
 ;*      BCD DISPLAY OF SCORE (PLAYER 1 & 2)
 ;*       INPUT: PRAM,U - ADDRESS OF SCORE TABLE
 ;*
-SCODSP  LDX     PRAM,U          ;PUT UP SCORE ZERO
+ScoreDisplay  LDX     PRAM,U          ;PUT UP SCORE ZERO
         LEAX    SCRINT-SCRPL1,X
 ;*
 .100S   STX     PRAM+2,U        ;REMEMBER DIGIT TO PUT UP
@@ -7516,15 +7609,15 @@ BCDLSN  ANDB    #$0F            ;LOW BYTE SHIFT
         ORCC    #$F0            ;NO INTERUPTS FOR DMA (TIME FOR INT TO SETTLE)
         ADDD    [FONT5]
         ADDD    #2              ;SKIP THE SIZE, IT IS 3X7
-        STD     SDMA
+        STD     DmaSourceOfCharacter
         LDD     #$0307!DMAFIX                                                   ;;Fixme was: LDD  #$0307!XDMAFIX
-        STD     WDMA
-        STY     DDMA
+        STD     DmaHorizontalWidth
+        STY     DmaDestinationOfCharacter
         LDD     #$12*256+(DKB*$11)      ;ERASE OLD DIGIT
-        STB     KDMA
+        STB     DmaConstantSubstitution
         STA     DMA
         TFR     U,D
-        STB     KDMA            ;WRITE NEW DIGIT
+        STB     DmaConstantSubstitution            ;WRITE NEW DIGIT
         STA     DMA
         PULS    CC              ;NAP BEFORE RETURNING TO CALLER
         LDA     #1

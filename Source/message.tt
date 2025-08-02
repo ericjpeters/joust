@@ -1,6 +1,7 @@
 <#@ template language="C#" #>
 <#@ output extension=".asm" #>
 <#@ include file="Includes\CheckAddress.ttinclude" #>
+
 ;       NAM     MESSAGE BLOCK OUTPUT ROUTINES AND DATA
 ;********       NLIST
 ;       INCLUDE RAMDEF.ASM                                      ;;Fixme was: INCLUDE RAMDEF.SRC  (All of these are already in TB12)
@@ -28,7 +29,7 @@ XSIZE   EQU     DES+2   ;HORIZONTAL SIZE (X-SIZE)
 YSIZE   EQU     XSIZE+1 ;VERTICAL SIZE (Y-SIZE)
 
 
-        ORG     MESS    ;START AT THE ADDRESS SPECIFIED ABOVE
+        ORG     MessagesModuleRam    ;START AT THE ADDRESS SPECIFIED ABOVE
         JMP     CHROUT  ;JUMP TO THE CHARACTER OUTPUT ROUTINE
         JMP     PHROUT  ;JUMP TO THE PHRASE OUTPUT ROUTINE
         JMP     BCDOUT  ;JUMP TO THE B.C.D. OUTPUT ROUTINE

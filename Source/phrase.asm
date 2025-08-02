@@ -48,7 +48,7 @@ PHRASE  FDB     OVER    ;$00    ;'THY GAME IS OVER'
         FDB     MSBOK   ;$23    ;'BOOKKEEPING TOTALS'
         FDB     MSLEFT  ;$24    ;'LEFT SLOT COINS'
         FDB     MSCENT  ;$25    ;'CENTER SLOT COINS'
-        FDB     MSRIGT  ;$26    ;'RIGHT SLOT COINS'
+        FDB     Message_SwitchRightCoinT  ;$26    ;'RIGHT SLOT COINS'
         FDB     MSPAD   ;$27    ;'PAID CREDITS'
         FDB     MSFRE   ;$28    ;'FREE MEN'
         FDB     MSTPT   ;$29    ;'TOTAL TIME IN MINUTES'
@@ -192,7 +192,7 @@ MSOUND  FCB     CS,CO,CU,CN,CD,CSPC,CL,CI,CN,CE+CEND
 MSBOK   FCB     CB,CO,CO,CK,CK,CE,CE,CP,CI,CN,CG,CSPC,CT,CO,CT,CA,CL,CS+CEND
 MSLEFT  FCB     CL,CE,CF,CT,CSPC,CS,CL,CO,CT,CSPC,CC,CO,CI,CN,CS+CEND
 MSCENT  FCB     CC,CE,CN,CT,CE,CR,CSPC,CS,CL,CO,CT,CSPC,CC,CO,CI,CN,CS+CEND
-MSRIGT  FCB     CR,CI,CG,CH,CT,CSPC,CS,CL,CO,CT,CSPC,CC,CO,CI,CN,CS+CEND
+Message_SwitchRightCoinT  FCB     CR,CI,CG,CH,CT,CSPC,CS,CL,CO,CT,CSPC,CC,CO,CI,CN,CS+CEND
 MSPAD   FCB     CP,CA,CI,CD,CSPC,CC,CR,CE,CD,CI,CT,CS+CEND
 MSFRE   FCB     CF,CR,CE,CE,CSPC,CM,CE,CN+CEND
 MSTPT   FCB     CT,CO,CT,CA,CL,CSPC,CT,CI,CM,CE,CSPC,CI,CN
@@ -380,172 +380,172 @@ TXT     FDB     ROMOK
         FDB     AT13
 
 ROMOK   FDB     $3E50   ;CURSOR
-        FCB     $99     ;COLOR
-        FCB     MSRMK
+        FCB     DisplayColor_99     ;COLOR
+        FCB     Message_AllRomsOk
         FDB     $3690
-        FCB     $33
-        FCB     MSRAMF
+        FCB     DisplayColor_33
+        FCB     Message_RamTestFollows
         FDB     $2EA0
-        FCB     $33
-        FCB     MSEXIT+CEND
+        FCB     DisplayColor_33
+        FCB     Message_PressAdvanceToExit+CEND
 
 RAMOK   FDB     $2A80
-        FCB     $99
-        FCB     MSNO
+        FCB     DisplayColor_99
+        FCB     Message_No
         FDB     $3080
-        FCB     $99
-        FCB     MSERDT+CEND
+        FCB     DisplayColor_99
+        FCB     Message_RamErrorsDetected+CEND
 
 CMOSOK  FDB     $2180
-        FCB     $99
-        FCB     MSCMS
+        FCB     DisplayColor_99
+        FCB     Message_NoCmos
         FDB     $3780
-        FCB     $99
-        FCB     MSERDT+CEND
+        FCB     DisplayColor_99
+        FCB     Message_RamErrorsDetected+CEND
 
 CMOSER  FDB     $3680
-        FCB     $22
-        FCB     MSCMER+CEND
+        FCB     DisplayColor_22
+        FCB     Message_CmosRamError+CEND
 
 CMOSDR  FDB     $3680
-        FCB     $22
-        FCB     MSCMER
+        FCB     DisplayColor_22
+        FCB     Message_CmosRamError
         FDB     $2890
-        FCB     $22
-        FCB     MSWRT
+        FCB     DisplayColor_22
+        FCB     Message_WriteProtectFailure
         FDB     $17A0
-        FCB     $99
-        FCB     MSCMDR
+        FCB     DisplayColor_99
+        FCB     Message_FromDoorMustBeOpen
         FDB     $17A8
-        FCB     $99
-        FCB     MSCMTL+CEND
+        FCB     DisplayColor_99
+        FCB     Message_OrTableTopRaisedForTest+CEND
 
 COLORTST FDB    $3A80                                                           ;;Fixme was: COLOR
-        FCB     $33
-        FCB     MSCRMT
+        FCB     DisplayColor_33
+        FCB     Message_ColorRamTest
         FDB     $24B0
-        FCB     $33
-        FCB     MSVRBR+CEND
+        FCB     DisplayColor_33
+        FCB     Message_VerticalBarsIndicateError+CEND
 
 SWITC   FDB     $3A20
-        FCB     $88
-        FCB     MSSWIT+CEND
+        FCB     DisplayColor_88
+        FCB     Message_SwitchTest+CEND
 
 BOOKS   FDB     $2F10                                                           ;;Fixme was: BOOK
-        FCB     $99
-        FCB     MSBOOK+CEND
+        FCB     DisplayColor_99
+        FCB     Message_BookkeepingTotals+CEND
 
 AJUST   FDB     $2F10
-        FCB     $99
-        FCB     MSADJ+CEND
+        FCB     DisplayColor_99
+        FCB     Message_GameAdjustments+CEND
 
 BADJ    FDB     $23D7
-        FCB     $BB
-        FCB     MSSADJ
+        FCB     DisplayColor_BB
+        FCB     Message_AdjustmentsUsePlayer1MoveToSelect
         FDB     $5ED7
-        FCB     $BB
-        FCB     MSAJM
+        FCB     DisplayColor_BB
+        FCB     Message_AdjustmentsAdjustment
         FDB     $25DF
         FCB     $44
-        FCB     MSCADJ
+        FCB     Message_AdjustmentsUsePlayer2MoveToChange
         FDB     $34E7
-        FCB     $11
-        FCB     MSEXIT+CEND
+        FCB     DisplayColor_11
+        FCB     Message_PressAdvanceToExit+CEND
 
 SETA    FDB     $2816
-        FCB     $BB
-        FCB     MSSETA
+        FCB     DisplayColor_BB
+        FCB     Message_AdjustmentsSetAttractMessage
         FDB     $16C0
-        FCB     $33
-        FCB     MSSADJ
+        FCB     DisplayColor_33
+        FCB     Message_AdjustmentsUsePlayer1MoveToSelect
         FDB     $6DC0
-        FCB     $33
-        FCB     MSLET
+        FCB     DisplayColor_33
+        FCB     Message_AdjustmentsLetter
         FDB     $20D0
-        FCB     $33
-        FCB     MSUSFP+CEND
+        FCB     DisplayColor_33
+        FCB     Message_AdjustmentsUsePlayer1FlapToEnter+CEND
 
 IMES    FDB     $3080
-        FCB     $22
-        FCB     MSAJM
+        FCB     DisplayColor_22
+        FCB     Message_AdjustmentsAdjustment
         FDB     $4F80
-        FCB     $22
+        FCB     DisplayColor_22
         FCB     MSFAIL
         FDB     $27A0
-        FCB     $22
-        FCB     MSREST
+        FCB     DisplayColor_22
+        FCB     Message_AdjustmentsRestoreFactorySettings
         FDB     $19B0
-        FCB     $22
+        FCB     DisplayColor_22
         FCB     MSOPEN
         FDB     $23C0
-        FCB     $22
+        FCB     DisplayColor_22
         FCB     MSONOF+CEND
 
 RESTS   FDB     $2180                                                           ;;Fixme was: REST (duplicate symbol)
-        FCB     $99
+        FCB     DisplayColor_99
         FCB     MSRFAC+CEND
 
 BKRES   FDB     $2460
-        FCB     $33
-        FCB     MSBOOK
+        FCB     DisplayColor_33
+        FCB     Message_BookkeepingTotals
         FDB     $5960
-        FCB     $33
+        FCB     DisplayColor_33
         FCB     MSCLRD+CEND
 
 RESHS   FDB     $2A40
-        FCB     $88
+        FCB     DisplayColor_88
         FCB     MSHSR+CEND
 
 HSP     FDB     $372A
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     DLBUZ
         FDB     $3560
-        FCB     $22
+        FCB     DisplayColor_22
         FCB     JCHAMP+CEND
 
 STGOD   FDB     $2816
-        FCB     $BB
-        FCB     MASETH
+        FCB     DisplayColor_BB
+        FCB     Message_AdjustmentsSetHighestScoreName
         FDB     $16C0
-        FCB     $33
-        FCB     MSSADJ
+        FCB     DisplayColor_33
+        FCB     Message_AdjustmentsUsePlayer1MoveToSelect
         FDB     $6DC0
-        FCB     $33
-        FCB     MSLET
+        FCB     DisplayColor_33
+        FCB     Message_AdjustmentsLetter
         FDB     $20D0
-        FCB     $33
-        FCB     MSUSFP+CEND
+        FCB     DisplayColor_33
+        FCB     Message_AdjustmentsUsePlayer1FlapToEnter+CEND
 
 AT1     FDB     $3420
-        FCB     $22
+        FCB     DisplayColor_22
         FCB     AM0+CEND ;'WELCOME TO JOUST'
 
 AT2     FDB     $4230
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM6     ;'TO FLY,'
         FDB     $1B40
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM7+CEND ;'REPEATEDLY PRESS THE 'FLAP' BUTTON'
 
 AT3     FDB     $3231
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM1     ;'TO SURVIVE A JOUST'
         FDB     $2E41
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM2     ;'THE HIGHEST LANCE WINS'
         FDB     $3851
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM3+CEND ;'IN A COLLISION'
 
 AT4     FDB     $3532
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM4     ;'PICK UP THE EGGS'
         FDB     $3342
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM5+CEND ;'BEFORE THEY HATCH'
 
 AT5     FDB     $3433
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM8+CEND ;'MEET THY ENEMIES'
 
 AT6     FDB     $10B6
@@ -557,52 +557,56 @@ AT7     FDB     $10B6
         FCB     AM10+CEND ;'HUNTER (750)'
 
 AT8     FDB     $10B6
-        FCB     $99
+        FCB     DisplayColor_99
         FCB     AM11+CEND ;'SHADOW LORD (1500)'
 
 AT11    FDB     $1146
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     MSW07+CEND ;'BEWARE OF THE "UNBEATABLE?" PTERADACTYLE'
 
-AT13    FDB     $33B0,$11*256+MSW21     ;'TEMPORARY SAFETY'
-        FDB     $2AB8,$11*256+MSW22+CEND        ;'UNTIL A CONTROL IS PRESSED'
+AT13    FDB     $33B0
+        FCB     DisplayColor_11
+        FCB     MSW21     ;'TEMPORARY SAFETY'
+        FDB     $2AB8
+        FCB     DisplayColor_11
+        FCB     MSW22+CEND        ;'UNTIL A CONTROL IS PRESSED'
 
 AT9     FDB     $2457
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM18    ;'PRESS '
         FDB     $3657
         FCB     $55
         FCB     AM17    ;'"SINGLE PLAY"'
         FDB     $5A57
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM12    ;' TO START'
 
         FDB     $4977
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM13    ;'OR'
         FDB     $2697
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM14    ;'INSERT ADDITIONAL COINS FOR'
         FDB     $3DA7
         FCB     $77
         FCB     AM15+CEND ;'"DUAL PLAY"'
 
 AT10    FDB     $2E77
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     AM16    ;'READY FOR '
         FDB     $4D77
         FCB     $77
         FCB     AM15+CEND ;'"DUAL PLAY"'
 
 AT12    FDB     $1030
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     MSNEW1  ;'THIS IS JOUST'
         FDB     $1040
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     MSNEW2  ;'DESIGNED BY WILLIAMS ELECTRONICS INC.'
         FDB     $1050
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     MSCOPY  ;'(C) 1982 WILLIAMS ELECTRONICS INC.'
         FDB     $1060
-        FCB     $11
+        FCB     DisplayColor_11
         FCB     MSNEW3+CEND ;'ALL RIGHTS RESERVED'

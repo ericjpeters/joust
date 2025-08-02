@@ -2600,7 +2600,7 @@ FL3     FDB     $060B!DMAFIX                                                    
 ;*
 ;*      PTERODACTYL, FLYING ONLY IMAGES
 ;*
-_IPTERO POSOFF  PT1RC,1,11,PT1R
+_IPTERO POSOFF  PT1RC,1,11,Pterodactyl1Right
         POSOFF  PT1LC,1,11,PT1L
         POSOFF  PT2RC,1,07,PT2R
         POSOFF  PT2LC,0,07,PT2L
@@ -2693,7 +2693,9 @@ PT3LC   FDB     $8000,$8000
 ;*
 ;*AAFF0E0E80C2FF00FF40FF00FF00FF00
 ;*00FF70580F3F51E814905D111FA40A67
-PT1R    FDB     $0D0A!DMAFIX                                                    ;;Fixme was: !XDMAFIX
+
+Pterodactyl1Right
+        FDB     $0D0A!DMAFIX                                                    ;;Fixme was: !XDMAFIX
         FCB     $99,$99,$F6,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
         FCB     $00,$09,$44,$F7,$90,$00,$00,$00,$00,$00,$00,$00,$00
         FCB     $00,$00,$00,$44,$CF,$79,$00,$00,$00,$00,$00,$00,$00

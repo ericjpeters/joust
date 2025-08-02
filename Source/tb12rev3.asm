@@ -1,12 +1,4 @@
 
-;********       NLIST
-;        INCLUDE RAMDEF.ASM                                                      ;;Fixme was: INCLUDE RAMDEF.SRC
-;        INCLUDE EQU.ASM                                                         ;;Fixme was: INCLUDE EQU.SRC
-;        INCLUDE MESSEQU.ASM                                                     ;;Fixme was: INCLUDE MESSEQU.SRC
-;        INCLUDE MESSEQU2.ASM                                                    ;;Fixme was: INCLUDE MESSEQU2.SRC
-;       LIST
-
-
 GODFLG  EQU     PPOSX+48-11     ;THE FLAG TO TELL IF THE ENTERIE WAS GOD        ;;Fixme was: .GODFLG
 SCRSV   EQU     PPOSX+48-10     ;THE PEON SCORE AREA SAVE LOCATION              ;;Fixme was: .SCRSV
 AREA    EQU     PPOSX+48-8      ;AREA FOR THE PEON TO ENTER AT                  ;;Fixme was: .AREA
@@ -18,7 +10,7 @@ SAVEY   EQU     PPOSX+48-1      ;WHERE TO STORE Y                               
 
 
         ORG     TSBORG
-        JMP     CKCMOS
+        JMP     PowerUp_RunCmosTest
         JMP     OPTSTS                                                          ;;Fixme was: OPTST$
         JMP     CMOSMV
         JMP     ADVSC
@@ -166,7 +158,7 @@ OPD2    FCB     CW,CI,CL,CL,CI,CA,CM,CS,CSPC,CE,CL,CE,CC,CT,CR,CO,CN,CI,CC,CS
 
 ADVSC   JSR     MAKCHK  ;DO THE CHECKSUM
         JSR     SCCLER
-ADVSC2  LDA     PIA0
+ADVSC2  LDA     PIA00
         BITA    #2
         BNE     ADVSC2  ;WAIT FOR RELEASE
 ADVSC3  LDA     SPECFN+3 ;CLEAR AUDITS??
@@ -218,7 +210,7 @@ ADVSC8  LDA     SPECFN+7 ;AUTO CYCLE
         BSR     FSCHK
         JMP     AUTOCY
 NOAUT   BSR     FSCHK                                                           ;;Fixme was: NOAUT$
-        BRA     CKCMOS
+        BRA     PowerUp_RunCmosTest
 
 FSCHK   LDA     SPECFN+1
         ANDA    #$F     ;FACTORY SETTINGS??
@@ -262,20 +254,21 @@ CKADJ   BSR     FCHK
         CMPA    ,S+
         RTS
 
-CKCMOS  BSR     OPTST   ;CHECK OPERATOR MESSAGE
+PowerUp_RunCmosTest  
+        BSR     OPTST   ;CHECK OPERATOR MESSAGE
         BSR     CKADJ   ;CHECK ADJ
         BEQ     CKSRT0
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         JSR     CMINI                                                           ;;Fixme was: CMINI$
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         BSR     MAKCHK
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         JSR     SCCLER  ;CLEAR THE SCREEN
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         BSR     AUDCHK  ;CHECK FOR FAULTY AUDITS
         JSR     CHKHSV  ;CHECK FOR FAULTY HIGH SCORES
         JSR     CKHSV   ;NOW VALIDATE
@@ -283,9 +276,9 @@ CKCMOS  BSR     OPTST   ;CHECK OPERATOR MESSAGE
         BEQ     CKSNOR
         LDA     #TXIMES ;TELL THE OPERATOR WHAT IS GOING ON.
 CMLOP0  JSR     TEXT
-CMLOP   LDA     #WDATA
-        STA     WDOG
-        LDA     PIA0    ;CHECK
+CMLOP       LDA   #WatchdogData
+    STA   WatchdogTimer
+        LDA     PIA00    ;CHECK
         BITA    #2
         BEQ     CMLOP   ;NOT PRESSED CONTINUE TO HANG
 CKSMRT  JMP     [$EFFE] ;START HIM UP
@@ -338,7 +331,7 @@ HSBUT   LDA     #$18    ;3 SECONDS REQUIRED
         STA     SOUND
 HSBUT1  LDA     #$08
         JSR     NAPV    ;CHECK BUTTON
-HSBUT2  LDA     PIA0
+HSBUT2  LDA     PIA00
         BITA    #8      ;STILL PRESSED??
         BEQ     HSBUT3  ;NOPE....BYE
         DEC     BCDD
@@ -360,8 +353,8 @@ HSCHK1  JSR     FSCCK   ;FORM THE CHECK BYTE
         BEQ     HSCHK2
         DECB
         BEQ     RESHSC  ;8 BAD ONES..RESET
-HSCHK2  LDA     #WDATA
-        STA     WDOG
+HSCHK2      LDA   #WatchdogData
+    STA   WatchdogTimer
         LEAY    SCRSIZ,Y
         CMPY    #TODAYS ;BEYOND REGION??
         BLO     HSCHK1
@@ -369,8 +362,8 @@ HSCHK2  LDA     #WDATA
 ;*
 ;***    RESHSC   RESET HIGH SCORES
 ;*
-RESHSC  LDA     #WDATA
-        STA     WDOG
+RESHSC      LDA   #WatchdogData
+    STA   WatchdogTimer
         LDX     #DEFHSR ;DEFAULT SCORES
         LDY     #GODNAM ;GODS INITIALS FOLLOWED BY GODS SCORE FOLLOWED BY REST
         LDB     #CDEFS1 ;SIZE OF DEFAULT TABLE
@@ -382,8 +375,8 @@ RESHSC  LDA     #WDATA
         JSR     MKGODC
         LDY     #CMSCOR ;WALK THROUGH
 RESHS1  JSR     MKSCCK
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         LEAY    SCRSIZ,Y
         CMPY    #TODAYS
         BLO     RESHS1
@@ -478,7 +471,7 @@ ENDTOD  FCB     CK,CA,CY        ;#33                                            
         FCB     $00,$00,$94,$05
         FCB     CD,CR,CJ        ;#40                                            ;;DRJ = Eugene "Dr. J" Jarvis
         FCB     $00,$00,$83,$11
-        FCB     CJ,CA,CY        ;#41    ;HE'S NEVER REALLY SEEN                 ;;JAY =
+        FCB     CJ,CA,CY        ;#41    ;HE'S NEVER REALLY SEEN                 ;;JAY = Jay Miner
         FCB     $00,$00,$70,$01
 ;*
 CDEFS2  EQU     *-DEFSC2        ;LENGTH OF TABLE
@@ -588,8 +581,8 @@ CKHS2S  JSR     WCMOSA                                                          
         BRA     RMENTR  ;REMOVE #2 AND RETURN
 
 CKENT   PSHS    D,X
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         TFR     Y,X     ;CMOSABLE REGISTER
 CKENT1  JSR     RCMOSB  ;READ A BYTE
         CMPB    #$0A    ;LOWER THAN A SPACE??
@@ -616,8 +609,8 @@ CKENT2  JSR     RCMOSB
         DECA
         BNE     CKENT2
 CKENT3  ANDCC   #$FE    ;(CLC)
-CKENT8  LDA     #WDATA
-        STA     WDOG
+CKENT8      LDA   #WatchdogData
+    STA   WatchdogTimer
         PULS    X,D,PC
 CKENT5  ORCC    #$01    ;SEC
         BRA     CKENT8
@@ -634,8 +627,8 @@ RMENT0  CMPX    #TODAYS ;ARE WE BEYOND IN X.
         BSR     BLKMOV  ;MOVE THE BLOCK X TO Y
         LEAY    SCRSIZ,Y
         LEAX    SCRSIZ,X
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         BRA     RMENT0
 RMENT1  JSR     CLRSCR  ;CLEAR THE BLOCK NOW POINTED AT BY Y (BOTTOM)
         JSR     MKSCCK  ;AND FORM THE CHECK BYTE
@@ -661,17 +654,17 @@ BLKMV1  LDB     ,X+
 ;********       CLRB
 ;********       STB     $CA01
 ;********       LDB     #$12
-;********       LDA     #WDATA
-;********       STA     WDOG
+;********       LDA     #WatchdogData
+;********       STA     WatchdogTimer
 ;********       STB     $CA00
 ;********       LDX     #$0080
 ;********       STX     $CA04
 ;********       LDB     #$12
-;********       LDA     #WDATA
-;********       STA     WDOG
+;********       LDA     #WatchdogData
+;********       STA     WatchdogTimer
 ;********       STB     $CA00
-;********       LDA     #WDATA
-;********       STA     WDOG
+;********       LDA     #WatchdogData
+;********       STA     WatchdogTimer
 ;********       PULS    D,X,CC,PC
 ;*
 SCCLER  PSHS    D,X,Y,U
@@ -679,14 +672,14 @@ SCCLER  PSHS    D,X,Y,U
         TFR     D,X
         TFR     D,Y
         LDU     #$A000          ;START SCREEN ADDRESS
-        LDA     #WDATA
+        LDA     #WatchdogData
 .10S    PSHU    B,X,Y           ;30 CLEARED BYTES                               ;;Fixme was: 10$
         PSHU    B,X,Y
         PSHU    B,X,Y
         PSHU    B,X,Y
         PSHU    B,X,Y
         PSHU    B,X,Y
-        STA     WDOG
+        STA     WatchdogTimer
         CMPU    #-20       ;$A000-((($A000+30-1)/30)*30) COMPLICATED END POINT
         BNE     .10S            ;BR=DO NOT STOP
         PULS    D,X,Y,U,PC
@@ -1205,8 +1198,8 @@ ENTINT  CLRA
         LDA     B,Y
         JSR     WRCUR   ;WRITE THE CURSOR
         LDB     SIDE,Y  ;GET THE CONTROL BYTE TO SEND TO THE WIDGET             ;;Fixme was: LDB  .SIDE,Y
-        STB     PIA3+1  ;AND GIVE IT TO IT
-        LDB     PIA2    ;READ THE SWITCH INPUTS
+        STB     PIA31  ;AND GIVE IT TO IT
+        LDB     PIA20    ;READ THE SWITCH INPUTS
         ANDB    #$07    ;WE ONLY WANT 'MOVE LEFT','MOVE RIGHT','FALP'
         BNE     .40S    ;BRA= SWITCHES HAVE BEEN PRESSED
         LDB     DEBONC,Y                                                        ;;Fixme was: LDB  .DEBONC,Y
@@ -1220,9 +1213,9 @@ ENTINT  CLRA
 
 ENTI2   PSHS    B
         LDB     SIDE,Y                                                          ;;Fixme was: LDB  .SIDE,Y
-        STB     PIA3+1
+        STB     PIA31
         PULS    B
-        CMPB    PIA2    ;IS THE SAME SWITCH STILL PRESSED
+        CMPB    PIA20    ;IS THE SAME SWITCH STILL PRESSED
         BNE     ENTRET  ;BRA= NO SO IT'S PROBBALY NOISE RETURN TO THE CALLER
         LSRB            ;SHIFT IT BECAUSE IF IT'S BIT 0 THEN IT WILL NOW BE 0
         BNE     .2S     ;BRA= IT'S NOT THIS SWITCH
@@ -1450,15 +1443,15 @@ OPE2    LDA     #CCNARW ;GET THE CENTERING ARROW
 OPEND   RTS
 
 
-LTRT    LDA     PIA0
+LTRT    LDA     PIA00
         BITA    #$02
         BEQ     .3S
         LEAS    2,S     ;GET RID OF THE RETURN ADDRESS
         JMP     ,U
-.3S     LDA     PIA2    ;READ THE SWITCH                                        ;;Fixme was: 3$
+.3S     LDA     PIA20    ;READ THE SWITCH                                        ;;Fixme was: 3$
         ANDA    #$03    ;ONLY NEED LEFT OR RIGHT
         JSR     WAIT
-        CMPA    PIA2    ;IS THE SAME SWITCH STILL PRESSED
+        CMPA    PIA20    ;IS THE SAME SWITCH STILL PRESSED
         BNE     LTRT
         TSTA
         BEQ     LTRT
@@ -1493,7 +1486,7 @@ ENDGAM  CLR     ANYONE  ;CLEAR THE DID ANYONE MAKE THE TABLE FLAG
         BSR     OVERFLO
         LDX     #SPLY2
         BSR     OVERFLO
-        TST     NPLYRS
+        TST     NumberOfPlayers
         BEQ     .1S
         LDX     #SPLY1  ;PLAYER 1'S SCORE
         LDY     #SPLY2  ;PLAYER 2'S SCORE
@@ -1550,7 +1543,7 @@ ENDGAM  CLR     ANYONE  ;CLEAR THE DID ANYONE MAKE THE TABLE FLAG
         CLRA
         LDB     #$42
         BSR     EGSUB1  ;CHECK IF HE'S A PEON
-.5S     TST     NPLYRS                                                          ;;Fixme was: 5$
+.5S     TST     NumberOfPlayers                                                          ;;Fixme was: 5$
         BEQ     .6S
         LDX     #SPLY2
         STX     SCRSV,U                                                         ;;Fixme was: STX  .SCRSV,U

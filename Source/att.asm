@@ -534,12 +534,13 @@ LIST    FCB     $40+XPOS
         FCC     'JOUST (C)1982 WILLIAMS ELECTRONICS INC.'
 
     ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
-    IF (* - AttModuleRamEnd) > 0
-        ERROR "\a The module is too large to fit in the current address space.  [ AttModuleRam: $\{AttModuleRam} - $\{AttModuleRamEnd} = $\{AttModuleRamEnd - AttModuleRam} vs. actual of $\{* - AttModuleRam} ($\{* - AttModuleRamEnd} bytes too large) ]"
+    IF (* < (AttModuleRamEnd + 1))
+        WARNING "\a The module is smaller than the current address space.  [ AttModuleRam: $\{AttModuleRam} -> $\{AttModuleRamEnd} => max $\{(AttModuleRamEnd - AttModuleRam) + 1} bytes allowed vs. actual of $\{* - AttModuleRam} bytes used ($\{(AttModuleRamEnd - *) + 1} bytes unused) ]"
+    ELSEIF (* = (AttModuleRamEnd + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ AttModuleRam: $\{AttModuleRam} -> $\{AttModuleRamEnd} => $\{AttModuleRamEnd - AttModuleRam + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ AttModuleRam: $\{AttModuleRam} -> $\{AttModuleRamEnd} => $\{(AttModuleRamEnd - AttModuleRam) + 1} bytes expected vs. actual of $\{(* - AttModuleRam) + 1} bytes ($\{* - AttModuleRamEnd} bytes too large) ]"
     ENDIF
-    IF (* - AttModuleRamEnd) = 0
-        MESSAGE "\a The module is precisely sized to the current address space.  [ AttModuleRam: $\{AttModuleRam} - $\{AttModuleRamEnd} = $\{AttModuleRamEnd - AttModuleRam} vs. actual of $\{* - AttModuleRam} ]"
-    ENDIF
-    IF (* - AttModuleRamEnd) < 0
-        WARNING "\a The module is smaller than the current address space.  [ AttModuleRam: $\{AttModuleRam} - $\{AttModuleRamEnd} = $\{AttModuleRamEnd - AttModuleRam} vs. actual of $\{* - AttModuleRam} ($\{AttModuleRamEnd - *} bytes unused) ]"
-    ENDIF
+
+; ModificationPauseButton is $D6F0, which goes here.   This ROM #10 is from $D000 to $DFFF, which leaves ample space for mods.
+

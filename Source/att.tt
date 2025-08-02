@@ -537,3 +537,6 @@ LIST    FCB     $40+XPOS
         FCC     'JOUST (C)1982 WILLIAMS ELECTRONICS INC.'
 
 <# CheckAddress("AttModuleRam", "AttModuleRamEnd"); #>
+
+; ModificationPauseButton is $D6F0, which goes here.   This ROM #10 is from $D000 to $DFFF, which leaves ample space for mods.
+

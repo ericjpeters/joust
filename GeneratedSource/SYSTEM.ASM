@@ -22,31 +22,32 @@ QUADA   EQU     $00             ;OFFSET TO QUADRANT A FROM DMABEG & DMAEND
 QUADB   EQU     $40             ;OFFSET TO QUADRANT B FROM DMABEG & DMAEND
 QUADC   EQU     $80             ;OFFSET TO QUADRANT C FROM DMABEG & DMAEND
 QUADD   EQU     $C0             ;OFFSET TO QUADRANT D FROM DMABEG & DMAEND
+
 ;*
 ;*      THE PROGRAM'S VECTORS
 ;*
         ORG     SystemVectors
-        ORCC    #$F0            ;DISABLE INTERUPTS
-        LDS     #STACK          ;TRUE STACK
-        JMP     INIT2           ;STANDARD OVERHEAD VECTORS
-        JMP     CRPROC          ;CREATE A PROCESS
-        JMP     KLPROC          ;KILL A PROCESS
-        JMP     SUCIDE          ;KILL SELF PROCESS
-        JMP     NAPTIM          ;NAP ENTERANCE
-        JMP     DCOLOR          ;LOAD COLOR RAM ADDR OF COLORS
-        JMP     RANDSYS         ;RANDOM NUMBER GENERATOR                        ;;Fixme was: RAND (duplicate symbol in T12REV3.ASM)
-        JMP     CL1ALL          ;ALLOCATE DMA AREA FOR ERASE OPERATION
-        JMP     WR1ALL          ;ALLOCATE DMA AREA FOR WRITE OPERATION
-        JMP     CL1CLS          ;ALLOCATE & FLAVOR AREA FOR 1 ERASE OPERATION
-        JMP     WR1CLS          ;ALLOCATE & FLAVOR AREA FOR 1 WRITE OPERATION
-        JMP     CL2CLS          ;ALLOCATE & FLAVOR AREA FOR 2 ERASE OPERATION
-        JMP     WR2CLS          ;ALLOCATE & FLAVOR AREA FOR 2 WRITE OPERATION
-        JMP     SND             ;SOUND ROUTINE
-        JMP     CUPROC          ;CREATE A PROCESS AFTER REG.U PROCESS
-        FDB     COLOR1          ;COLOR TABLET ADDRESS
-        FDB     LAVA            ;BUBBLING LAVA CONTROL ROUTINE
-        JMP     NAPTPC          ;NAP VIA A JSR
-        JMP     NEWCL5          ;THE NEW CLIF5 UN-COMPACTOR ROUTINE
+VINIT2          ORCC    #$F0            ;DISABLE INTERUPTS
+                LDS     #STACK          ;TRUE STACK
+                JMP     INIT2           ;STANDARD OVERHEAD VECTORS
+VCRPROC         JMP     CRPROC          ;CREATE A PROCESS
+VKLPROC         JMP     KLPROC          ;KILL A PROCESS
+VSUCIDE         JMP     SUCIDE          ;KILL SELF PROCESS
+VNAPTIM         JMP     NAPTIM          ;NAP ENTERANCE
+VDCOLOR         JMP     DCOLOR          ;LOAD COLOR RAM ADDR OF COLORS
+VRAND           JMP     RANDSYS         ;RANDOM NUMBER GENERATOR                        ;;Fixme was: RAND (duplicate symbol in T12REV3.ASM)
+VCL1ALL         JMP     CL1ALL          ;ALLOCATE DMA AREA FOR ERASE OPERATION
+VWR1ALL         JMP     WR1ALL          ;ALLOCATE DMA AREA FOR WRITE OPERATION
+VCL1CLS         JMP     CL1CLS          ;ALLOCATE & FLAVOR AREA FOR 1 ERASE OPERATION
+VWR1CLS         JMP     WR1CLS          ;ALLOCATE & FLAVOR AREA FOR 1 WRITE OPERATION
+VCL2CLS         JMP     CL2CLS          ;ALLOCATE & FLAVOR AREA FOR 2 ERASE OPERATION
+VWR2CLS         JMP     WR2CLS          ;ALLOCATE & FLAVOR AREA FOR 2 WRITE OPERATION
+VSND            JMP     SND             ;SOUND ROUTINE
+VCUPROC         JMP     CUPROC          ;CREATE A PROCESS AFTER REG.U PROCESS
+VCOLOR1         FDB     COLOR1          ;COLOR TABLET ADDRESS
+VLAVA           FDB     LAVA            ;BUBBLING LAVA CONTROL ROUTINE
+VNAPTPC         JMP     NAPTPC          ;NAP VIA A JSR
+VNEWCL5         JMP     NEWCL5          ;THE NEW CLIF5 UN-COMPACTOR ROUTINE
 ;*
         ASSUME DPR:$A0                                                          ;;Fixme was: SETDP  !HBASE
 INIT2   LDA     #$A0            ;SET-UP BASE PAGE                               ;;Fixme was: LDA  #!HBASE
@@ -60,8 +61,8 @@ INIT2   LDA     #$A0            ;SET-UP BASE PAGE                               
 ;*
 ;*      PET THE WATCHDOG STUFF
 ;*
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         CLRA
         STD     ,X++
         STD     ,X++
@@ -150,7 +151,7 @@ PLINIT  LEAX    PBLKL,U
 ;*      START SINGLE PROCESS
 ;*
         LDU     #PDUMMY         ;THIS 1ST PROCESS STARTS FROM THE DUMMY PROCESS
-        LDX     #VPWRUP         ;CREATE POWER-UP MODE PRIMARY PROCESS I.D.=0
+        LDX     #VPowerUpHandler         ;CREATE POWER-UP MODE PRIMARY PROCESS I.D.=0
         CLRA
         CLRB
         JSR     CUPROC
@@ -577,8 +578,8 @@ WR2NOF  STA     ,X              ;DEFAULT DMA COMMAND
 ;*      INTERUPT HANDLER
 ;*
 IRQ     STS     IRQSTK          ;REMEMBER STACK POINTER (NO DCON FROM NOW ON!)
-        LDA     #WDATA
-        STA     WDOG            ;TICKLE WATCH DOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         INC     RANDOM
         DEC     RANDOM+1
         LDA     DRRUC           ;DMA READS ROM!
@@ -772,6 +773,7 @@ SN1NS   STA     SPRI            ;NEW PIRORITY
         STA     STMR
         STX     SNDPTR          ;SAVE SOUND TABLE ADDRESS
 NOSND   RTS
+
 ;*************************************************************************
 ;*      LAVA EFFECTS BY KEN LANTZ                                        *
 ;*                                                                       *
@@ -1028,14 +1030,12 @@ REST    PSHS    A               ;SAVE NBR OF BITS TO GET
 SNBUB   FCB     001,$72,1               ;THE SOUND OF A BUBBLE
 
     ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
-    IF (* - SystemVectorsEnd) > 0
-        ERROR "\a The module is too large to fit in the current address space.  [ SystemVectors: $\{SystemVectors} - $\{SystemVectorsEnd} = $\{SystemVectorsEnd - SystemVectors} vs. actual of $\{* - SystemVectors} ($\{* - SystemVectorsEnd} bytes too large) ]"
-    ENDIF
-    IF (* - SystemVectorsEnd) = 0
-        MESSAGE "\a The module is precisely sized to the current address space.  [ SystemVectors: $\{SystemVectors} - $\{SystemVectorsEnd} = $\{SystemVectorsEnd - SystemVectors} vs. actual of $\{* - SystemVectors} ]"
-    ENDIF
-    IF (* - SystemVectorsEnd) < 0
-        WARNING "\a The module is smaller than the current address space.  [ SystemVectors: $\{SystemVectors} - $\{SystemVectorsEnd} = $\{SystemVectorsEnd - SystemVectors} vs. actual of $\{* - SystemVectors} ($\{SystemVectorsEnd - *} bytes unused) ]"
+    IF (* < (SystemVectorsEnd + 1))
+        WARNING "\a The module is smaller than the current address space.  [ SystemVectors: $\{SystemVectors} -> $\{SystemVectorsEnd} => max $\{(SystemVectorsEnd - SystemVectors) + 1} bytes allowed vs. actual of $\{* - SystemVectors} bytes used ($\{(SystemVectorsEnd - *) + 1} bytes unused) ]"
+    ELSEIF (* = (SystemVectorsEnd + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ SystemVectors: $\{SystemVectors} -> $\{SystemVectorsEnd} => $\{SystemVectorsEnd - SystemVectors + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ SystemVectors: $\{SystemVectors} -> $\{SystemVectorsEnd} => $\{(SystemVectorsEnd - SystemVectors) + 1} bytes expected vs. actual of $\{(* - SystemVectors) + 1} bytes ($\{* - SystemVectorsEnd} bytes too large) ]"
     ENDIF
 
         ORG     $EFF0

@@ -3,14 +3,12 @@ protected void CheckAddress(string start, string maxEnd)
 { 
 #>
     ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
-    IF (* - <#= maxEnd #>) > 0
-        ERROR "\a The module is too large to fit in the current address space.  [ <#= start #>: $\{<#= start #>} - $\{<#= maxEnd #>} = $\{<#= maxEnd #> - <#= start #>} vs. actual of $\{* - <#= start #>} ($\{* - <#= maxEnd #>} bytes too large) ]"
-    ENDIF
-    IF (* - <#= maxEnd #>) = 0
-        MESSAGE "\a The module is precisely sized to the current address space.  [ <#= start #>: $\{<#= start #>} - $\{<#= maxEnd #>} = $\{<#= maxEnd #> - <#= start #>} vs. actual of $\{* - <#= start #>} ]"
-    ENDIF
-    IF (* - <#= maxEnd #>) < 0
-        WARNING "\a The module is smaller than the current address space.  [ <#= start #>: $\{<#= start #>} - $\{<#= maxEnd #>} = $\{<#= maxEnd #> - <#= start #>} vs. actual of $\{* - <#= start #>} ($\{<#= maxEnd #> - *} bytes unused) ]"
+    IF (* < (<#= maxEnd #> + 1))
+        WARNING "\a The module is smaller than the current address space.  [ <#= start #>: $\{<#= start #>} -> $\{<#= maxEnd #>} => max $\{(<#= maxEnd #> - <#= start #>) + 1} bytes allowed vs. actual of $\{* - <#= start #>} bytes used ($\{(<#= maxEnd #> - *) + 1} bytes unused) ]"
+    ELSEIF (* = (<#= maxEnd #> + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ <#= start #>: $\{<#= start #>} -> $\{<#= maxEnd #>} => $\{<#= maxEnd #> - <#= start #> + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ <#= start #>: $\{<#= start #>} -> $\{<#= maxEnd #>} => $\{(<#= maxEnd #> - <#= start #>) + 1} bytes expected vs. actual of $\{(* - <#= start #>) + 1} bytes ($\{* - <#= maxEnd #>} bytes too large) ]"
     ENDIF
 <#+
 }

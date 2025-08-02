@@ -1,0 +1,16 @@
+<#+
+
+protected void FeedWatchdog(Register? register = Register.A)
+{
+    var registerName = register switch {
+        Register.A => "A",
+        Register.B => "B",
+        _ => "A" // Default to A
+    };
+
+#>
+    LD<#= registerName #>   #WatchdogData
+    ST<#= registerName #>   WatchdogTimer
+<#+
+}
+#>

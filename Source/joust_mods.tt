@@ -1,5 +1,9 @@
 <#@ template language="C#" #>
 <#@ output extension=".asm" #>
+<#@ include file="Includes\Structures.ttinclude" #>
+<#@ include file="Includes\BranchOnInput.ttinclude" #>
+<#@ include file="Includes\Watchdog.ttinclude" #>
+
 ;
 ;                 JJJJ   OOO   U   U   SSSS  TTTTT    M   M   OOO   DDDD    SSSS
 ;                    J  O   O  U   U  S        T      MM MM  O   O  D   D  S
@@ -55,23 +59,24 @@
 ;
 ;Downloaded from COINOPLOVE.COM
 
-
-
         IFDEF   PauseMod
+        IF PauseMod > 0
 
-        ORG     $D6F0
+        ; This code is placed on ROM #10 just after the "real" code...
+        ; 
+        ORG     ModificationPauseButton
 
 PauseSTART
         LDA     #$11
         STA     CON             ;$CA01
         LDX     #$0703
-        STX     WDMA            ;$CA06
+        STX     DmaHorizontalWidth            ;$CA06
         LDY     #PauseTbl       ;Grab letter pointers
-        LDX     #$3863          ;screen position 34 = X, 63 = Y (EJP updated to x=38)
+        LDX     #$306F          ;screen position 34 = X, 63 = Y (EJP updated to x = 30, y = 6F)
 .2S     LDD     ,Y++
         BEQ     .1S             ; branch to RTS if we reach zeros at the end of letter pointer table
         STD     ORG             ;store letter pointer in ORG ;$CA02
-        STX     DDMA            ;store screen location in DDMA ;$CA04
+        STX     DmaDestinationOfCharacter            ;store screen location in DmaDestinationOfCharacter ;$CA04
         EXG     X,D
         ADDA    #$08
         EXG     X,D
@@ -93,56 +98,48 @@ PauseTbl
         FDB     $00
 PauseCLR
         LDX     #$0000          ;this clears the screen by loading 4 black color nibbles in x register
-        LDA     #$38            ;load starting horizontal position in A
-.1S     LDB     #$63            ;load starting vertical position in B
+        LDA     #$30            ;load starting horizontal position in A
+.1S     LDB     #$6F            ;load starting vertical position in B ; ejp changed to 6F
 .2S     EXG     X,D             ;swap X with D
         STA     ,X              ;draw the black pixels over the text here
         EXG     X,D             ;swap X with D again so we can clear more pixels
         INCB                    ;keep going down vertically to continue clearing text
-        CMPB    #$6B            ; until we hit $6B
+        CMPB    #$76            ; until we hit $6B ; ejp changed this to $76
         BNE     .2S             ; loop to clear more pixels please
         INCA                    ;when we finish this pixel column, increase A to move to next pixel horizontal row
-        CMPA    #$60            ; keep doing this until we reach $60
-        BNE     .1S             ; go back and grab the start of the next column ($63)
+        CMPA    #$5B            ; keep doing this until we reach $60 ; ejp changed this to $5B
+        BNE     .1S             ; go back and grab the start of the next column ($63, ejp changed to $6F)
         RTS
 
-        ORG     $DDC1
+        ORG     EJP_PauseModHook
         JMP     PauseScan       ;instead of reading player 1/2 joystick, we jump to check if pause is enabled
 
-        ORG     $DFA0
 
+        ; I do not think this is used anywhere...
+        ORG     $DFA0
 DoStuff
         RTS
 
 PauseScan
-        PSHS    D                                                                                                   ; push D onto the stack.   I'm not sure what D is.
-        LDA     WPIAA           ;$C804 (note that WPIAA and PIA2 are the same)                                      ; this stores some inputs in A as bits
-        ANDA    #$20                                                                                                ; mask to just the P1 Start button (0x20) 
-        BEQ     PauseExit       ;if player one button is not pressed, prepare to exit routine                       ; if the button is not pressed, A will be 0.   If A is 0, go to Pause Exit.
+        PSHS    D                                                                                            ; push D onto the stack.   I'm not sure what D is.
+        <# BranchOnInput(InputButton.P1Start, InputState.Released, "PauseExit"); #>
         ORCC    #$10            ;set Interrupt mask                                                                 ; sets interrupt mask.   I'm not sure why yet.
         JSR     PauseDelay      ;go to delay subroutine
 
 .1S     JSR     .4S             ;feed watchdog
-        LDA     WPIAA           ;did player hit P1 button?
-        ANDA    #$20
-        BNE     .1S             ;no? then go feed watchdog again
+        <# BranchOnInput(InputButton.P1Start, InputState.Pressed, ".1S"); #>
         JSR     PauseSTART      ;yes? draw "PAUSED" text
 
 .3S     JSR     .4S             ;feed watchdog
-        LDA     WPIAA           ;$C804
-        ANDA    #$20
-        BEQ     .3S
+        <# BranchOnInput(InputButton.P1Start, InputState.Released, ".3S"); #>
         JSR     PauseDelay
 
 .2S     JSR     .4S
-        LDA     WPIAA           ;$C804
-        ANDA    #$20
-        BNE     .2S
+        <# BranchOnInput(InputButton.P1Start, InputState.Pressed, ".2S"); #>
         JSR     PauseCLR        ;player wants to resume play, let's go clear the "PAUSED" text
         JMP     PauseExit
 
-.4S     LDB     #$39            ;Watchdog food
-        STB     WDOG            ;Watchdog
+.4S     <# FeedWatchdog(Register.B); #>
         RTS
 
 PauseDelay
@@ -161,6 +158,7 @@ PauseExit PULS    D             ;grab D from stack                              
         FDB     $00FA           ;$FA = CHECKSUM FIX
 
         ENDIF
+        ENDIF
 
 ;;--------------------------------------------------------------------------------------------------
 ;;
@@ -173,6 +171,7 @@ PauseExit PULS    D             ;grab D from stack                              
 ;;--------------------------------------------------------------------------------------------------
 
         IFDEF   DisplayLivesMod
+        IF   DisplayLivesMod > 0
 
 ;;
 ;;  Force Fake Checksums for debugging and disable ZAP routines
@@ -193,7 +192,7 @@ PauseExit PULS    D             ;grab D from stack                              
         ORG     TSTPAT          ;; make TSTPAT skip color bar and cross hatch tests and go straight to booking
         JMP     BOOK
 
-        ORG     $F43D           ;; overwrite JSR instructions for AVWAIT and CRTEST with NOPs
+        ORG     EJP_DisplayLivesModHook           ;; overwrite JSR instructions for AVWAIT and CRTEST with NOPs
         NOP
         NOP
         NOP
@@ -215,7 +214,7 @@ PauseExit PULS    D             ;grab D from stack                              
 ;;  high score screen and doesn't do anything during gameplay.
 ;;
 
-        ORG     $F4C5
+        ORG     $F4C5 ; THIS IS NOT CORRECT -- NOT SURE WHAT IT ORIGINALLY POINTED TO, BUT IT'S CLEARLY NOT CORRECT NOW.
 
 HXXBCD  PSHS    X,B             ;; save B to stack
         CLRA                    ;; clear A
@@ -223,7 +222,7 @@ HXXBCD  PSHS    X,B             ;; save B to stack
         STA     XTEMP           ;; let's initialize XTEMP to store our temporary data.
         STA     XTEMP+1         ;; store a zero here too
 
-        LDX     DSCORE,X        ;; grab Player RAM area (works for both player 1 AND 2)
+        LDX     ScoreRamLocation,X        ;; grab Player RAM area (works for both player 1 AND 2)
         LDB     5,X             ;; Player Decision Block in X, lets us grab number of lives
 
 HXX0    LDX     #$0000          ;; we can use X again
@@ -234,7 +233,7 @@ UPDBCD  PSHS    X,B
 
 ;; We don't initialize XTEMP here
 
-        LDX     DSCORE,X        ;; grab Player RAM area (works for both player 1 AND 2)
+        LDX     ScoreRamLocation,X        ;; grab Player RAM area (works for both player 1 AND 2)
         LDB     5,X
 
         STA     XTEMP           ;; we already initialized, so lets store a zero here...
@@ -280,13 +279,13 @@ BYEDUDE PSHS    X,CC            ;SAVE INTERUPT STATUS
 
         CLRB
         CLRA                    ;; clears out X-position offset so we can erase first icon
-        ADDD    DSCLOC,X                                                        ;;39D9
+        ADDD    ScoreScreenLocation,X                                                        ;;39D9
         ORCC    #$F0            ;NO INTERUPTS FOR DMA
-        STD     DDMA
+        STD     DmaDestinationOfCharacter
         LDD     #$0307!DMAFIX   ;CHARACTER SIZE                                 ;;Fixme was: !XDMAFIX
-        STD     WDMA
-        LDD     DSCPLY,X        ;GET PLAYERS SOURCE CHARACTER ADDRESS
-        STD     SDMA
+        STD     DmaHorizontalWidth
+        LDD     LivesRemainingScreenLocation,X        ;GET PLAYERS SOURCE CHARACTER ADDRESS
+        STD     DmaSourceOfCharacter
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;; draw DMA
@@ -295,7 +294,7 @@ BYEDUDE PSHS    X,CC            ;SAVE INTERUPT STATUS
 ;;
 ;; erase DMA
         LDD     #$1A*256+(DKB*$11)      ;DMA CONTROL & ERASE CONSTANT
-        STB     KDMA
+        STB     DmaConstantSubstitution
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         STA     DMA
         PULS    X,CC,PC
@@ -315,28 +314,28 @@ LONUMWR ANDB    #$0F            ;LOW BYTE SHIFT
 ;       ORCC    #$F0            ;NO INTERUPTS FOR DMA (TIME FOR INT TO SETTLE)
         ADDD    [FONT5]
         ADDD    #2              ;SKIP THE SIZE, IT IS 3X7
-        STD     SDMA
+        STD     DmaSourceOfCharacter
         LDD     #$0307!DMAFIX                                                   ;;Fixme was: LDD  #$0307!XDMAFIX
-        STD     WDMA
+        STD     DmaHorizontalWidth
 ;       PSHS    X               ;; X should already be the correct value here
-        LDD     DSCLOC,X
+        LDD     ScoreScreenLocation,X
 ;       PULS    CC,PC
         RTS
 ;;
 ;;  <<< ADDING X-POSITION OFFSET TO D HAPPENS HERE, THEN PROCEED TO FINISH >>>
 ;;
-;;  In the previous LDD instruction, we grab the #$39D9 value known as "DSCLOC",
+;;  In the previous LDD instruction, we grab the #$39D9 value known as "ScoreScreenLocation",
 ;;  then add our X position offset ($6, $9, or $C).  $39 is x-pos, $D9 is y-pos.
 ;;  Then, we go to the FINISH routine and actually draw the number via the DMA.
 ;;
 
 FINISH  ORCC    #$F0            ;; we're not done yet
-        STD     DDMA            ;; store X-pos and Y-pos screen coordinates into Destination DMA
+        STD     DmaDestinationOfCharacter            ;; store X-pos and Y-pos screen coordinates into Destination DMA
         LDD     #$12*256+(DKB*$11)      ;ERASE OLD DIGIT
-        STB     KDMA
+        STB     DmaConstantSubstitution
         STA     DMA
         LDD     #$1A11          ;; $1A = DMA constant, $11 = White color nibbles
-        STB     KDMA            ;WRITE NEW DIGIT
+        STB     DmaConstantSubstitution            ;WRITE NEW DIGIT
         STA     DMA
 ;       PULS    CC              ;NAP BEFORE RETURNING TO CALLER
 
@@ -467,7 +466,7 @@ INCBCD  JSR     INCLIV          ;AWARD THE PLAYER
 ;;  this mod is actually pretty small so it doesn't interfere with feeding the watchdog.
 ;;
 
-;       LDX     DSCORE,X        ;; grab Player RAM area (works for both player 1 AND 2)
+;       LDX     ScoreRamLocation,X        ;; grab Player RAM area (works for both player 1 AND 2)
 ;       LDB     5,X
 ;
 ;       CMPB    #$FF            ;; Check if lives = 255
@@ -519,6 +518,7 @@ DECBCD  JSR     DECLIV          ;; Let the game decrement the life counter first
         FCB     $F0,$74,0,$8C   ;; Final
 
         ENDIF
+        ENDIF
 
 ;;--------------------------------------------------------------------------------------------------
 ;;
@@ -527,6 +527,7 @@ DECBCD  JSR     DECLIV          ;; Let the game decrement the life counter first
 ;;--------------------------------------------------------------------------------------------------
 
         IFDEF   DisableZAP
+        IF   DisableZAP > 0
 
 ;;
 ;;  (06/29/2024): JZAP is triggering when trying to mod code.  It works by increasing the second byte of LXPOS2 ($A0B2)
@@ -569,22 +570,22 @@ DECBCD  JSR     DECLIV          ;; Let the game decrement the life counter first
 ;;  ROM 12 might have to be changed as well, especially if you're doing extensive modding.
 
 ;; JZAP
-;       ORG     JZAP            ;; Skip JZAP entirely
+;       ORG     JZAP                    ;; Skip JZAP entirely
 ;       RTS
 
-        ORG     $6AD6           ;; Make JZAP do nothing
+        ORG     ZapPrimaryAction       ;; Make JZAP do nothing
         NOP
         NOP
 
-        ORG     $658E
-        JMP     $6596           ;; Skip JSR JZAP during NOSPL2 (CREATE PLAYERS COLISION DETECT ROUTINE)
+        ORG     ZapTrigger
+        JMP     ZapTriggerSkipped           ;; Skip JSR JZAP during NOSPL2 (CREATE PLAYERS COLISION DETECT ROUTINE)
 
 
 ;; LZAP
 ;       ORG     LZAP            ;; Skip LZAP entirely
 ;       RTS
 
-        ORG     $85D0           ;; NEUTRALIZE LZAP
+        ORG     ZapNeutralizeLzap           ;; NEUTRALIZE LZAP
         NOP                     ;; JMP $85D0 will also work, but NOPs are easier to read in memory viewer
         NOP
         NOP
@@ -592,7 +593,7 @@ DECBCD  JSR     DECLIV          ;; Let the game decrement the life counter first
         NOP
         NOP
 
-        ORG     $82FB           ;; Skip JSR LZAP during PLAYER KILLED BY ENEMY OR PTERODACTYL routine (SPDIE2)
+        ORG     ZapWhenPlayerDies           ;; Skip JSR LZAP during PLAYER KILLED BY ENEMY OR PTERODACTYL routine (SPDIE2)
         NOP
         NOP
         NOP
@@ -610,6 +611,7 @@ DECBCD  JSR     DECLIV          ;; Let the game decrement the life counter first
 ;       RTS
 
         ENDIF
+        ENDIF
 
 ;;--------------------------------------------------------------------------------------------------
 ;;
@@ -618,6 +620,7 @@ DECBCD  JSR     DECLIV          ;; Let the game decrement the life counter first
 ;;--------------------------------------------------------------------------------------------------
 
         IFDEF SkipRugTest
+        IF SkipRugTest > 0
 
         ORG     $F066
         NOP
@@ -629,6 +632,7 @@ DECBCD  JSR     DECLIV          ;; Let the game decrement the life counter first
         NOP
 
         ENDIF
+        ENDIF
 
 ;;--------------------------------------------------------------------------------------------------
 ;;
@@ -637,6 +641,7 @@ DECBCD  JSR     DECLIV          ;; Let the game decrement the life counter first
 ;;--------------------------------------------------------------------------------------------------
 
         IFDEF   FakeChecksums
+        IF   FakeChecksums > 0
 
         ORG     ROMTAB
 
@@ -660,32 +665,40 @@ DECBCD  JSR     DECLIV          ;; Let the game decrement the life counter first
         FCB     $0      ;CHECK BYTE (FUDGER) FOR THIS PART ($F000)
 
         ENDIF
+        ENDIF
 
         IFDEF Hard8
+        IF Hard8 > 0
 
         ORG     EJP01
 
         FCB     $FF,$3F,4,10 ; WAVE 18 - PTERODACTYL WAVE AT WAVE 8
 
         ENDIF
+        ENDIF
 
         IFDEF LotsOfLives
+        IF LotsOfLives > 0
 
         ORG     EJP02
 
         FCB     $20     ; NUMBER OF MEN SET TO 20
 
         ENDIF
+        ENDIF
 
         IFDEF EasyBonus
+        IF EasyBonus > 0
 
         ORG     EJP03
 
         FCB     $5     ; FREE LIFE AT 5,000
 
         ENDIF
+        ENDIF
 
         IFDEF HackDailyHighs
+        IF HackDailyHighs > 0
 
         ORG     TODTAB
 
@@ -703,3 +716,5 @@ DECBCD  JSR     DECLIV          ;; Let the game decrement the life counter first
         FCB     $00,$00,$00,$01
 
         ENDIF
+        ENDIF
+

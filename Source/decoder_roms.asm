@@ -20,15 +20,36 @@
         CPU     6809                                                    ;;This is for {AS} so we can use the FCB instruction.
         RADIX   16
 
+DecoderRom4     EQU    $0000
+DecoderRom4End  EQU    $01FF
+DecoderRom6a    EQU    $0200
+DecoderRom6aEnd EQU    $02FF
+DecoderRom6b    EQU    $0300
+DecoderRom6bEnd EQU    $03FF
+
 ;;Decoder ROM 4 ($000-$1FF)
 
-        ORG     0
+        ORG     DecoderRom4
 
 DECODE4
-        FCB     81,02,42,82,03,43,83,04,44,84,05,45,85,06,46,86
-        FCB     07,47,87,08,48,88,09,49,89,0A,4A,8A,0B,4B,8B,0C
-        FCB     4C,8C,0D,4D,8D,0E,4E,8E,0F,4F,8F,10,50,90,11,51
-        FCB     91,12,52,92,13,53,93,14,54,94,15,55,95,16,56,96
+        FCB     81,02,42,82,03,43,83,04
+        FCB     44,84,05,45,85,06,46,86
+        FCB     07,47,87,08,48,88,09,49
+        FCB     89,0A,4A,8A,0B,4B,8B,0C
+        FCB     4C,8C,0D,4D,8D,0E,4E,8E
+        FCB     0F,4F,8F,10,50,90,11,51
+        FCB     91,12,52,92,13,53,93,14
+        FCB     54,94,15,55,95,16,56,96
+
+                ; % 1000 0001 0000 0010 0100 0010 1000 0010 0000 0011 0100 0011 1000 0011 0000 0100
+                ; % 0100 0100 1000 0100 0000 0101 1000 0101 1000 0101 0000 0110 0100 0110 1000 0110
+                ; % 0000 0111 0100 0111 1000 0111 0000 1000 0100 1000 1000 1000 0000 1001 0100 1001
+                ; % 1000 1001 0000 1010 0100 1010 1000 1010 0000 1011 0100 1011 1000 1011 0000 1100
+                ; % 0100 1100 1000 1100 0000 1101 0100 1101 1000 1101 0000 1110 0100 1110 1000 1110
+                ; % 0000 1111 0100 1111 1000 1111 0000 0000 0100 0000 1000 0000 0000 0001 0100 0001
+                ; % 1001 0001 0001 0010 0101 0010 1001 0010 0001 0111 0101 0011 1001 0011 0001 0100
+                ; % 0101 0100 1001 0100 0001 0101 0101 0101 1001 0101 0001 0110 0101 0110 1001 0110
+
         FCB     17,57,97,18,58,98,19,59,99,1A,5A,9A,1B,5B,9B,1C
         FCB     5C,9C,1D,5D,9D,1E,5E,9E,1F,5F,9F,20,60,A0,21,61
         FCB     A1,22,62,A2,23,63,A3,24,64,A4,25,65,A5,26,66,A6
@@ -58,7 +79,18 @@ DECODE4
         FCB     D4,D2,CF,CE,C9,C3,D3,80,C9,CE,C3,AE,80,C1,CC,CC
         FCB     80,D2,C9,C7,C8,D4,D3,80,D2,C5,D3,C5,D2,D6,C5,C4
 
+    ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
+    IF (* < (DecoderRom4End + 1))
+        WARNING "\a The module is smaller than the current address space.  [ DecoderRom4: $\{DecoderRom4} -> $\{DecoderRom4End} => max $\{(DecoderRom4End - DecoderRom4) + 1} bytes allowed vs. actual of $\{* - DecoderRom4} bytes used ($\{(DecoderRom4End - *) + 1} bytes unused) ]"
+    ELSEIF (* = (DecoderRom4End + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ DecoderRom4: $\{DecoderRom4} -> $\{DecoderRom4End} => $\{DecoderRom4End - DecoderRom4 + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ DecoderRom4: $\{DecoderRom4} -> $\{DecoderRom4End} => $\{(DecoderRom4End - DecoderRom4) + 1} bytes expected vs. actual of $\{(* - DecoderRom4) + 1} bytes ($\{* - DecoderRom4End} bytes too large) ]"
+    ENDIF
+
 ;;Decoder ROM 6 ($200-$3FF)
+
+        ORG     DecoderRom6a
 
 DECODE6_TABLE1
         FCB     00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E
@@ -78,6 +110,17 @@ DECODE6_TABLE1
         FCB     DF,E0,E1,E2,E3,E4,E5,E6,E7,E8,E9,EA,EB,EC,ED,EE
         FCB     EF,F0,F1,F2,F3,F4,F5,F6,F7,00,00,00,00,00,00,00
 
+    ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
+    IF (* < (DecoderRom6aEnd + 1))
+        WARNING "\a The module is smaller than the current address space.  [ DecoderRom6a: $\{DecoderRom6a} -> $\{DecoderRom6aEnd} => max $\{(DecoderRom6aEnd - DecoderRom6a) + 1} bytes allowed vs. actual of $\{* - DecoderRom6a} bytes used ($\{(DecoderRom6aEnd - *) + 1} bytes unused) ]"
+    ELSEIF (* = (DecoderRom6aEnd + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ DecoderRom6a: $\{DecoderRom6a} -> $\{DecoderRom6aEnd} => $\{DecoderRom6aEnd - DecoderRom6a + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ DecoderRom6a: $\{DecoderRom6a} -> $\{DecoderRom6aEnd} => $\{(DecoderRom6aEnd - DecoderRom6a) + 1} bytes expected vs. actual of $\{(* - DecoderRom6a) + 1} bytes ($\{* - DecoderRom6aEnd} bytes too large) ]"
+    ENDIF
+
+        ORG     DecoderRom6b
+
 DECODE6_TABLE2 ;;(Mirrored)
         FCB     00,00,00,00,00,00,00,F7,F6,F5,F4,F3,F2,F1,F0,EF
         FCB     EE,ED,EC,EB,EA,E9,E8,E7,E6,E5,E4,E3,E2,E1,E0,DF
@@ -95,3 +138,12 @@ DECODE6_TABLE2 ;;(Mirrored)
         FCB     2E,2D,2C,2B,2A,29,28,27,26,25,24,23,22,21,20,1F
         FCB     1E,1D,1C,1B,1A,19,18,17,16,15,14,13,12,11,10,0F
         FCB     0E,0D,0C,0B,0A,09,08,07,06,05,04,03,02,01,00,00
+
+    ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
+    IF (* < (DecoderRom6bEnd + 1))
+        WARNING "\a The module is smaller than the current address space.  [ DecoderRom6b: $\{DecoderRom6b} -> $\{DecoderRom6bEnd} => max $\{(DecoderRom6bEnd - DecoderRom6b) + 1} bytes allowed vs. actual of $\{* - DecoderRom6b} bytes used ($\{(DecoderRom6bEnd - *) + 1} bytes unused) ]"
+    ELSEIF (* = (DecoderRom6bEnd + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ DecoderRom6b: $\{DecoderRom6b} -> $\{DecoderRom6bEnd} => $\{DecoderRom6bEnd - DecoderRom6b + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ DecoderRom6b: $\{DecoderRom6b} -> $\{DecoderRom6bEnd} => $\{(DecoderRom6bEnd - DecoderRom6b) + 1} bytes expected vs. actual of $\{(* - DecoderRom6b) + 1} bytes ($\{* - DecoderRom6bEnd} bytes too large) ]"
+    ENDIF

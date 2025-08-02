@@ -23,8 +23,8 @@ RAM     EQU     RAMALS
 HSTK    EQU     $BF00   ;STACK FOR DECON
 PCRAM   EQU     $C000   ;COLOR RAM ADDR
 CRAM    EQU     $C000   ;COLOR RAM ADDR
-WDOG    EQU     $CBFF   ;WHERE THE DOG LIVES
-WDATA   EQU     $39     ;AND WHAT TO FEED HIM
+WatchdogTimer    EQU     $CBFF   ;WHERE THE DOG LIVES
+WatchdogData   EQU     $39     ;AND WHAT TO FEED HIM
 AEND    EQU     $1620
 ATOP    EQU     $16CA
 CMOS    EQU     $CC00   ;CMOS MEMORY
@@ -34,41 +34,57 @@ GREEN   EQU     $77
 VERTCT  EQU     $CB00   ;6-BIT VERTICAL BEAM ADDR
 RWCNTL  EQU     $C900   ;(BIT 0: 1-ROM READ; 0-RAM READ)
 ;*                      ;(BIT 1: 1-INVERT;   0-NORMAL SCREEN)
+
+;* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 ;*
 ;*PIA DEFINITIONS
 ;*
-PIA0    EQU     $C80C   ;A. SIDE OF THE COIN DOOR PIA
-;*B0 AUTO UP
-;*B1 ADVANCE
-;*B2 RCOIN
-;*B3 HSRESET
-;*B4 LCOIN
-;*B5 CCOIN
-;*B6 SLAM
-;*B7 SOUND HANDSHAKE
-;*CA2 LED3
-;*CA1 IRQ 240 (16 MS)  (LINE 240)
-PIA1    EQU     $C80E   ;B. SIDE OF THE COIN DOOR PIA
-;*B0-B5 SOUND
-;*B6-B7 LED 0,1
-;*CB1 IRQ 4 MS (0,$40,$80,$C0)
-;*CB2 LED2
-PIA2    EQU     $C804   ;A. SIDE OF THE WIDGET (STARGATE STYLE WIDGET)
-;*B0    PLAYER 1 MOVE LEFT
-;*B1    PLAYER 1 MOVE RIGHT
-;*B2
-;*B3
-;*B4    START 2
-;*B5    START 1
-;*B6
-;*B7
-;*
-PIA3    EQU     $C806   ;B. SIDE OF THE WIDGET
-;*B0    PLAYER 2 MOVE LEFT
-;*B1    PLAYER 2 MOVE RIGHT
-;*B7    INPUT 1=COCKTAIL
-;*CB2   OUTPUT SWITCH MUX CONTROL 1=PLAYER1,0=PLAYER2
-;*
+;* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+                
+PIA00                   EQU         $C80C       ; A. SIDE OF THE COIN DOOR PIA
+                                                ; * B0 AUTO UP
+                                                ; * B1 ADVANCE
+                                                ; * B2 RCOIN
+                                                ; * B3 HSRESET
+                                                ; * B4 LCOIN
+                                                ; * B5 CCOIN
+                                                ; * B6 SLAM
+                                                ; * B7 SOUND HANDSHAKE
+                                            
+PIA01                   EQU         $C80D       ; A. SIDE OF THE COIN DOOR PIA
+                                                ; * CA2 LED3 -- It appears that this is bit 3 of PIA01
+                                                ; * CA1 IRQ 240 (16 MS)  (LINE 240)
+PIA01_Unknown           EQU         $34         ; Not sure what this is.
+PIA01_LED3              EQU         $08         ; LED3 is bit 3 of PIA01, which is CA2
+
+PIA10                   EQU         $C80E       ; B. SIDE OF THE COIN DOOR PIA
+                                                ; * B0-B5 SOUND
+                                                ; * B6-B7 LED 0,1
+
+PIA11                   EQU         $C80F       ; B. SIDE OF THE COIN DOOR PIA
+                                                ; * CB1 IRQ 4 MS (0,$40,$80,$C0)
+                                                ; * CB2 LED2
+
+PIA20                   EQU         $C804       ; A. SIDE OF THE WIDGET (STARGATE STYLE WIDGET)
+                                                ; * B0    PLAYER 1 MOVE LEFT
+                                                ; * B1    PLAYER 1 MOVE RIGHT
+                                                ; * B2
+                                                ; * B3
+                                                ; * B4    START 2
+                                                ; * B5    START 1
+                                                ; * B6
+                                                ; * B7
+
+PIA21                   EQU         $C805       ; A. SIDE OF THE WIDGET (STARGATE STYLE WIDGET)
+
+PIA30                   EQU         $C806       ; B. SIDE OF THE WIDGET
+                                                ; * B0    PLAYER 2 MOVE LEFT
+                                                ; * B1    PLAYER 2 MOVE RIGHT
+                                                ; * B7    INPUT 1=COCKTAIL
+
+PIA31                   EQU         $C807       ; B. SIDE OF THE WIDGET
+                                                ; * CB2   OUTPUT SWITCH MUX CONTROL 1=PLAYER1,0=PLAYER2
+
 ;*      'ENTER' - ENTER CHARACTERS....ALL OFFSETS ARE FROM REG Y.
 ;*      INDEXING OFFSET EQUATES
 NUMLET  EQU     0       ;NUMBER OF LETTERS TO GET                               ;;Fixme was: .NUMLET    (periods are reserved for local labels in {AS})
@@ -87,7 +103,7 @@ CARAC   EQU     15      ;THE START OF THE CHARACTER BUFFER                      
 ;*
 ;* CMOS RAM ALLOCATION
 ;*
-        ORG     CMOS+$100 ;WRITABLE CMOS
+        ORG     WritableCmosRam
 CREDST  RMB     2       ;CREDITS BACKUP
 SLOT1   RMB     6       ;LEFT COIN TOTAL
         RMB     6       ;CENTER COIN TOTAL
@@ -106,7 +122,8 @@ GODSCR  RMB     8       ;GODS SCORE
 CMSCOR  RMB     40*SCRSIZ ;40 BACKED UP SCORES, 39 OF WHICH ARE VISIBLE
 TODAYS  RMB     6*SCRSIZ ;TODAYS GREATEST
 TODEND  EQU     *
-        ORG     CMOS    ;ADEQUATE BIRTH CONTROL PROTECTION
+
+        ORG     CmosRam
 REPLAY  RMB     2       ;REPLAY LEVEL
 NSHIP   RMB     2       ;# OF SHIPS/1 CREDIT GAME
 N2SHIP  RMB     2       ;# OF SHIPS/2 CREDIT GAME  0=NO TWO CREDIT GAME

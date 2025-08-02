@@ -46,15 +46,12 @@
     ;  To enable mods for Joust, simply remove the semi-colon in front of
     ;  any define listed below:
     ;
-PauseMod EQU   1
-
-
     ;  Originally written in 2008 by Chris Brooks @ Coinoplove.com, this allows the
     ;  ability to pause the game by hitting the Player 1 button during gameplay.
     ;  Very useful, especially if you're playing on hardware!
     ;
-DisplayLivesMod EQU    1
-
+PauseMod                EQU   1
+    ;
     ;  This is a mod I wrote that takes the hex value for the player's number of
     ;  current lives, converts it to BCD using code from the 2014 Tie-Die version of
     ;  Robotron, and draws a life number counter on-screen.  This process repeats
@@ -65,15 +62,17 @@ DisplayLivesMod EQU    1
     ;  I was previously aware of one of them, but only discovered the other two while
     ;  while working on this mod.
     ;
+DisplayLivesMod         EQU    1
+    ;
     ;===============================================================================
 
-DisableZAP      EQU     1
-SkipRugTest     EQU     1
-FakeChecksums   EQU     1
-Hard8           EQU     0
-LotsOfLives     EQU     0
-EasyBonus       EQU     0
-HackDailyHighs  EQU     0
+DisableZAP              EQU     1
+SkipRugTest             EQU     1
+FakeChecksums           EQU     1
+Hard8                   EQU     0
+LotsOfLives             EQU     0
+EasyBonus               EQU     0
+HackDailyHighs          EQU     0
 
     INCLUDE joust_mods.asm
 

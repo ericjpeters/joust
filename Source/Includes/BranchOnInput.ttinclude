@@ -1,0 +1,135 @@
+<#+
+
+protected void SetInput(Player player)
+{
+    if(player == Player.P2)
+    {
+#>
+    LDA     #~$08
+    ANDA    $C807
+    STA     $C807
+<#+
+    }
+    else
+    {
+#>
+    LDA     #$08
+    ORA     $C807
+    STA     $C807
+<#+
+    }
+}
+
+protected void BranchOnInput(InputButton button, InputState state, string branchLocation, Register? register = Register.A) 
+{
+    var inputLocation = String.Empty;
+    var buttonIdentifier = 0;
+
+    if((button & InputButton.P1Left) != 0)
+    {
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C804"))
+            inputLocation = "$C804";
+        else
+            inputLocation = "ERR";
+
+        buttonIdentifier |= 0x01;
+    }
+    
+    if((button & InputButton.P1Right) != 0)
+    {
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C804"))
+            inputLocation = "$C804";
+        else
+            inputLocation = "ERR";
+
+        buttonIdentifier |= 0x02;
+    }
+    
+    if((button & InputButton.P1Flap) != 0)
+    {
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C804"))
+            inputLocation = "$C804";
+        else
+            inputLocation = "ERR";
+
+        buttonIdentifier |= 0x04;
+    }
+    
+    if((button & InputButton.P2Start) != 0)
+    {
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C804"))
+            inputLocation = "$C804";
+        else
+            inputLocation = "ERR";
+
+        buttonIdentifier |= 0x10;
+    }
+    
+    if((button & InputButton.P1Start) != 0)
+    {
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C804"))
+            inputLocation = "$C804";
+        else
+            inputLocation = "ERR";
+
+        buttonIdentifier |= 0x20;
+    }
+    
+    if((button & InputButton.P2Left) != 0)
+    {
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C806"))
+            inputLocation = "$C806";
+        else
+            inputLocation = "ERR";
+
+        buttonIdentifier |= 0x01;
+    }
+    
+    if((button & InputButton.P2Right) != 0)
+    {
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C806"))
+            inputLocation = "$C806";
+        else
+            inputLocation = "ERR";
+
+        buttonIdentifier |= 0x02;
+    }
+    
+    if((button & InputButton.P2Flap) != 0)
+    {
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C806"))
+            inputLocation = "$C806";
+        else
+            inputLocation = "ERR";
+
+        buttonIdentifier |= 0x04;
+    }
+    
+    var branch = state switch {
+        InputState.Released => "BEQ",
+        InputState.Pressed => "BNE",
+        _ => "BNE" // Default to Pressed"
+    };
+
+    var registerName = register switch {
+        Register.A => "A",
+        Register.B => "B",
+        _ => "A" // Default to A
+    };
+
+    if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "ERR"))
+    {
+#>
+        ERROR "\a BranchOnInput received incompatible button combinations."
+<#+
+    }
+    else
+    {
+#>
+        LD<#= registerName #> <#= inputLocation #>
+        AND<#= registerName #> #<#= buttonIdentifier #>
+        <#= branch #> <#= branchLocation #>
+<#+
+    }
+}
+#>

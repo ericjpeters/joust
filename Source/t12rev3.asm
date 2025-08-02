@@ -9,7 +9,7 @@
 ;       SETDP   $A0
 
         ORG     TSTORG
-PWRUPV  JMP     PWRUP
+PowerUpVector  JMP     PowerUpHandler
         JMP     ADVSWS                                                          ;;Fixme was: ADVSW$
         JMP     AUTCYC
         JMP     JNAP
@@ -17,69 +17,88 @@ PWRUPV  JMP     PWRUP
         JMP     TEST
         JMP     CYCLE
 
-;*COLOR RAM TABLE
+;* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 ;*
-CRTAB   FCB     0       ;0 SPACED OUT
-        FCB     $F9     ;1 LASER (SPECIAL)
-        FCB     $07     ;2 RED
-        FCB     $28     ;3 GREEN
-        FCB     $2F     ;4 YELLOW
-        FCB     $00     ;5 MESSAGES
-        FCB     $A4     ;6 GRAY
-        FCB     $15     ;7 TERRAIN
-        FCB     $C7     ;8 PURPLE
-        FCB     $FF     ;9 WHITE
-        FCB     $38     ;A BOMB CYCLER
-        FCB     $17     ;B ORANGE
-        FCB     $CC     ;C CYCLER
-        FCB     $81     ;D TIE1
-        FCB     $81     ;E TIE2
-        FCB     $2F     ;F TIE3,MONO
+;* COLOR RAM TABLE
+;*
+;* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 
+ColorRamTable   
+                            FCB         0                           ; 0 SPACED OUT
+                            FCB         $F9                         ; 1 LASER (SPECIAL)
+                            FCB         $07                         ; 2 RED
+                            FCB         $28                         ; 3 GREEN
+                            FCB         $2F                         ; 4 YELLOW
+                            FCB         $00                         ; 5 MESSAGES
+                            FCB         $A4                         ; 6 GRAY
+                            FCB         $15                         ; 7 TERRAIN
+                            FCB         $C7                         ; 8 PURPLE
+                            FCB         $FF                         ; 9 WHITE
+                            FCB         $38                         ; A BOMB CYCLER
+                            FCB         $17                         ; B ORANGE
+                            FCB         $CC                         ; C CYCLER
+                            FCB         $81                         ; D TIE1
+                            FCB         $81                         ; E TIE2
+                            FCB         $2F                         ; F TIE3,MONO
 
+ColorRamTableEnd            EQU         ColorRamTable + 16          ; END OF COLOR RAM TABLE
+
+;* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 ;*
 ;***    POWER UP ROUTINE
 ;*
-PWRUP   ORCC    #$FF    ;NO INTERRUPTS ETC.
-        LDS     #HSTK   ;IF AND WHEN WE DECIDE TO USE THE STACK
-        CLR     PIA0+1
-        CLR     PIA0
-        LDA     #$3C    ;SET LED 3 TO 1 (WE'RE MAKING AN F TO BLANK)
-        STA     PIA0+1
-        CLR     PIA1+1
-        LDA     #$C0    ;BITS 6,7 TO OUTPUTS (LEDS)
-        STA     PIA1
-        LDA     #$3C    ;SET BIT 2 TO 1
-        STA     PIA1+1  ;CLEAR CB2 (LED)
-        LDA     #$C0    ;CLEAR LEDS
-        STA     PIA1    ;SET BITS 0,1
-        LDA     #1
-        STA     RWCNTL  ;MAKE SURE WE COPY FROM ROM!
-        LDX     #CRTAB
-        LDY     #CRAM
-PWRUP0  LDD     ,X++
-        STD     ,Y++
-        CMPX    #CRTAB+16
-        BLO     PWRUP0
-        LDA     #2
-        LDY     #PWRUP1
-        LDX     #0
-        BRA     RAMTST  ;DO A RAM TEST.
-PWRUP1  LDY     #PWRUP4
-        JMP     ROMTST
-PWRUP4  LDA     #$34    ;PUT A ZERO IN THE LED.
-        STA     PIA0+1
-        STA     PIA1+1
-        CLR     PIA1
+;* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+PowerUpHandler   
+        ORCC    #$FF                        ;NO INTERRUPTS ETC.                                 ; CC = #$FF
+        LDS     #HSTK                       ;IF AND WHEN WE DECIDE TO USE THE STACK             ; S = #HSTK
+        CLR     PIA01                                                                           ; PIA00 = ?? $00
+        CLR     PIA00                                                                           ; PIA00 = $00 $00
+        LDA     #PIA01_Unknown + PIA01_LED3 ;SET LED 3 TO 1 (WE'RE MAKING AN F TO BLANK)        ; A = #$3C (%0011 1100)
+        STA     PIA01                                                                           ; PIA00 = $00 $3C
+        CLR     PIA11                                                                           ; PIA10 = ?? $00
+        LDA     #$C0                        ;BITS 6,7 TO OUTPUTS (LEDS)                         ; A = #$C0 (%1100 0000)
+        STA     PIA10                                                                           ; PIA10 = $C0 $00
+        LDA     #$3C                        ;SET BIT 2 TO 1                                     ; A = #$3C (%0011 1100)
+        STA     PIA11                       ;CLEAR CB2 (LED)                                    ; PIA10 = $C0 $3C
+        LDA     #$C0                        ;CLEAR LEDS                                         ; A = #$C0
+        STA     PIA10                       ;SET BITS 0,1                                       ; PIA10 = $C0 $3C
+        LDA     #1                                                                              ; A = #1
+        STA     RWCNTL                      ;MAKE SURE WE COPY FROM ROM!                        ; RWCNTL = #1 (ROM READ / NORMAL SCREEN)
+        LDX     #ColorRamTable                                                                  ; X = Color RAM Table pointer
+        LDY     #CRAM                                                                           ; Y = Color RAM pointer
+
+PowerUp_RunRamTest                                                                                 ; >> Copy 16 WORDS from the Color RAM Table to the Color RAM
+        LDD     ,X++                                                                            ; D = Color RAM Table entry
+                                                                                                ; X = Color RAM Table pointer + 2
+        STD     ,Y++                                                                            ; CRAM[Y] = D
+        CMPX    #ColorRamTableEnd                                                               ; Compare X with the end of the Color RAM Table
+        BLO     PowerUp_RunRamTest                                                                 ; Branch if X is less than the end of the Color RAM Table
+        LDA     #2                                                                              ; A = #2
+        LDY     #PowerUp_RunRomTest                                                                ; Y = PowerUp_RunRomTest address
+        LDX     #0                                                                              ; X = #0
+        BRA     RamTestRoutine              ;DO A RAM TEST.                                     ; A = #2, Y = PowerUp_RunRomTest, X = #0
+                                                                                                ; >> A is the number of iterations to make
+                                                                                                ; >> X is the seed to start with
+                                                                                                ; >> Y is the address to return to if no error
+
+PowerUp_RunRomTest  
+        LDY     #PowerUp_IndicateSuccess                                                                ; Y = PowerUp_IndicateSuccess address
+        JMP     RomTestRoutine                                                                  ; >> Y is the address to return to if no error
+
+PowerUp_IndicateSuccess  
+        LDA     #PIA01_Unknown              ;PUT A ZERO IN THE LED.                             ; A = #$34 (%0011 0100)
+        STA     PIA01
+        STA     PIA11
+        CLR     PIA10
         LDA     #RAM>>8                                                         ;;Fixme was: LDA  #RAM!>8
         TFR     A,DP
         LDS     #HSTK
         JSR     SCCLR
-        LDA     #MSIND  ;INITIAL TESTS INDICATE
+        LDA     #Message_InitialTestsIndicate  ;INITIAL TESTS INDICATE
         LDX     #$3070
         LDB     #$99
         JSR     OUTPHR
-        LDA     #MSALL  ;ALL SYSTEMS GO
+        LDA     #Message_AllSystemsGo  ;ALL SYSTEMS GO
         LDX     #$3A90
         LDB     #$99
         JSR     OUTPHR  ;INDICATE OK
@@ -87,23 +106,28 @@ PWRUP4  LDA     #$34    ;PUT A ZERO IN THE LED.
         LDA     #7
         JMP     DELA1
 
+;* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
 ;*
-;*      RAM TEST....Y = PLACE TO RETURN IF NO ERROR
+;*      RAM TEST....
+;*
+;*      Y = PLACE TO RETURN IF NO ERROR
 ;*      X = SEED TO START WITH
 ;*      A = ITERATIONS TO MAKE
-
-RAMTST  ORCC    #$3F    ;NO INTERRUPTS DURING TEST
-        CLR     RWCNTL  ;SET TO RAM READ
-        TFR     A,DP    ;COUNT AT DP.
-        TFR     X,D     ;START WITH A PASSED SEED.
-RAM2    TFR     D,U     ;SAVE THE SEED
-RAM0    LDX     #0      ;MEMORY POINTER
-RAM3    COMB            ;DONT ASK
-        BITB    #9
-        BNE     RAM4
-        COMB
-        RORA
-        RORB
+;*
+;* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+RamTestRoutine  
+        ORCC    #$3F                        ;NO INTERRUPTS DURING TEST                          ; CC = #$3F
+        CLR     RWCNTL                      ;SET TO RAM READ                                    ; RWCNTL = $00 (READ RAM / NORMAL SCREEN)
+        TFR     A,DP                        ;COUNT AT DP.                                       ; DP = A (DP = Direct Page Register)
+        TFR     X,D                         ;START WITH A PASSED SEED.                          ; D = X
+RAM2    TFR     D,U                         ;SAVE THE SEED                                      ; U = D
+RAM0    LDX     #0                          ;MEMORY POINTER                                     ; X = #0
+RAM3    COMB                                ;DONT ASK                                           ; B = !B
+        BITB    #9                                                                              ; Check bits %1001 of B
+        BNE     RAM4                                                                            ; 
+        COMB                                                                                    ; B = !B
+        RORA                                                                                    ; A = A >> 1
+        RORB                                                                                    ; B = B >> 1
         BRA     RAM6
 RAM4    COMB
         BITB    #9
@@ -114,24 +138,24 @@ RAM4    COMB
 RAM5    LSRA
         RORB
 RAM6    STD     ,X++
-        EXG     X,D     ;SINCE IRQ RUNS OUT OF RAM, STROKE ROVER
+        EXG     X,D                         ;SINCE IRQ RUNS OUT OF RAM, STROKE ROVER
         TSTB
-        BNE     RAM6B   ;EVERY 256!
-        LDB     #WDATA
-        STB     WDOG    ;HAVE A BONE..EVER BEEN BONED.....
-        TFR     DP,B    ;CHECK IS NORMAL DIAGS
-        CMPB    #$FF    ;FF MEANS FRONT DOOR
+        BNE     RAM6B                       ;EVERY 256!
+            LDB   #WatchdogData
+    STB   WatchdogTimer
+        TFR     DP,B                        ;CHECK IS NORMAL DIAGS
+        CMPB    #$FF                        ;FF MEANS FRONT DOOR
         BNE     RAM6C
-        LDB     PIA0    ;CHECK FOR ADV.
+        LDB     PIA00                        ;CHECK FOR ADV.
         BITB    #2
-        BEQ     RAM6C   ;NOT PRESSED.
-        JMP     ,Y      ;TIME TO RETURN
-RAM6C   CLRB            ;RETURN B TO ZERO
-RAM6B   EXG     X,D     ;TRADE BACK
-        CMPX    #$C000  ;DONE??
-        BNE     RAM3    ;NOPE..CONTINUE
+        BEQ     RAM6C                       ;NOT PRESSED.
+        JMP     ,Y                          ;TIME TO RETURN
+RAM6C   CLRB                                ;RETURN B TO ZERO
+RAM6B   EXG     X,D                         ;TRADE BACK
+        CMPX    #$C000                      ;DONE??
+        BNE     RAM3                        ;NOPE..CONTINUE
 ;*
-        TFR     U,D     ;RESTORE SEED.
+        TFR     U,D                         ;RESTORE SEED.
         LDX     #0
 RAM7    COMB
         BITB    #9
@@ -149,16 +173,16 @@ RAM8    COMB
 RAM9    LSRA
         RORB
 RAM10   CMPD    ,X++
-        BNE     RERROR  ;RAM ERROR!
-RAM25   EXG     X,D     ;CHECK FOR END OF PAGE
+        BNE     RamTestError                ;RAM ERROR!
+RAM25   EXG     X,D                         ;CHECK FOR END OF PAGE
         TSTB
         BNE     RAM17
-        LDB     #WDATA
-        STB     WDOG
-        TFR     DP,B    ;SEE IF NORMAL RUN
-        CMPB    #$FF    ;FRONT DOOR??
-        BNE     RAM17C  ;NOPE
-        LDB     PIA0    ;CHECK ADV.
+            LDB   #WatchdogData
+    STB   WatchdogTimer
+        TFR     DP,B                        ;SEE IF NORMAL RUN
+        CMPB    #$FF                        ;FRONT DOOR??
+        BNE     RAM17C                      ;NOPE
+        LDB     PIA00                        ;CHECK ADV.
         BITB    #2
         BEQ     RAM17C
         JMP     ,Y      ;JUST RETURN (NO ERRORS)
@@ -182,7 +206,7 @@ RAM99   DECA            ;TAKE ONE AWAY
 RAM99S  LDB     #1      ;SET BACK TO ROM                                        ;;Fixme was: RAM99$
         STB     RWCNTL
         JMP     ,Y      ;RETURN
-RERROR  LEAX    -2,X    ;BACK TO ERROR POINT
+RamTestError  LEAX    -2,X    ;BACK TO ERROR POINT
         EORA    ,X      ;FIND DIFFERENCE.
         EORB    1,X
         TSTA            ;NO DIFFERENCE?
@@ -222,11 +246,11 @@ RERR6   LDA     #RAM>>8                                                         
         JSR     SCCLR
         BITA    #$C0    ;INITIAL TEST???
         BNE     RER099  ;NOP
-RER098  LDA     #MSIND  ;'INITIAL TESTS INDICATE'
+RER098  LDA     #Message_InitialTestsIndicate  ;'INITIAL TESTS INDICATE'
         LDX     #$3070
         LDB     #$22
         JSR     OUTPHR
-RER099  LDA     #MSRRM  ;'RAM ERROR '
+RER099  LDA     #Message_RamError  ;'RAM ERROR '
         LDX     #$4090
         LDB     #$22
         JSR     OUTPHR  ;PRINT THE MESSAGE.
@@ -244,8 +268,8 @@ REROR7  LDY     #CKCMSV ;OTHERWISE START...TRY AND RUN THE GAME.
 DELAY   LDA     #32
 DELA1   LDX     #$5800
 DELA2   LEAX    -1,X
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         CMPX    #0
         BNE     DELA2
         DECA
@@ -310,11 +334,11 @@ PULS95  TFR     U,D     ;RESTORE D
         JMP     ,S      ;AND RETURN
 
 BLKLED  LDA     #$3C
-        STA     PIA0+1
+        STA     PIA01
         INCA
-        STA     PIA1+1
+        STA     PIA11
         LDA     #$C0
-        STA     PIA1
+        STA     PIA10
         JMP     ,Y      ;AND RETURN
 
 ;*      PSSUB - PUT LOW HALF OF A TO LEDS
@@ -324,20 +348,28 @@ PSSUB   TFR     A,B     ;SAVE A COPY.
         RORA            ;BIT 0 - BIT 7
         RORA            ;BIT 0 - BIT 6
         ANDA    #$C0
-        STA     PIA1    ;THOSE BITS OUT.
+        STA     PIA10    ;THOSE BITS OUT.
         LDA     #$34    ;ASSUME ZERO
         BITB    #$4     ;SEE IF 1
         BEQ     PSSUB1  ;NOPE
         LDA     #$3C
-PSSUB1  STA     PIA1+1  ;THATS ALL FOR THAT BIT
+PSSUB1  STA     PIA11  ;THATS ALL FOR THAT BIT
         LDA     #$34
         BITB    #$8
         BEQ     PSSUB2
         LDA     #$3C
-PSSUB2  STA     PIA0+1
+PSSUB2  STA     PIA01
         JMP     ,Y      ;AND RETURN
 
-ROMTST  ORCC    #$3F    ;NO INTERRUPTS WHILE THIS RUNS
+;* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+;*
+;*      ROM TESTING ROUTINE 
+;*
+;*      Y = PLACE TO RETURN IF NO ERROR
+;*
+;* ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- ----- -----
+RomTestRoutine  
+        ORCC    #$3F                        ;NO INTERRUPTS WHILE THIS RUNS                      ; CC = #$3F
         LDX     #ROMTAB ;INDEX INTO TABLE
 ROM0    CMPX    #ROMEND ;DONE??
         BNE     ROM2    ;BRA= NOPE
@@ -349,9 +381,9 @@ ROM2    LDA     1,X     ;LOOK TO SEE IF PART STUFFED??
         LDA     ,X      ;GET BASE
         CLRB
         TFR     D,U     ;USE U TO POINT THROUGH
-        LDA     #WDATA  ;FOR ROVER
+        LDA     #WatchdogData  ;FOR ROVER
 ROM1    ADDB    ,U+     ;ADD A BYTE
-        STA     WDOG
+        STA     WatchdogTimer
         EXG     D,U     ;SEE IF DUN
         CMPA    2,X     ;ARE WE TO NEXT PART
         EXG     D,U     ;CHANGE BACK
@@ -376,8 +408,8 @@ ROMER1  ADDA    #1      ;MAKE ERRORS FROM 1-12
         JMP     PULSE   ;AND SEND OUT THE CODE
 RERR3   LDA     #RAM>>8                                                         ;;Fixme was: LDA  #RAM!>8
         TFR     A,DP
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         LDS     #HSTK
         JSR     SCCLR
         TFR     CC,A
@@ -386,11 +418,11 @@ RERR3   LDA     #RAM>>8                                                         
         STB     XTEMP
         BITA    #$C0    ;INITIAL TEST??
         BNE     RERR95  ;NOP
-RERR94  LDA     #MSIND  ;'INITIAL TESTS INDICATE'
+RERR94  LDA     #Message_InitialTestsIndicate  ;'INITIAL TESTS INDICATE'
         LDX     #$3070
         LDB     #$22
         JSR     OUTPHR
-RERR95  LDA     #MSROM  ;'ROM ERROR '
+RERR95  LDA     #Message_RomError  ;'ROM ERROR '
         LDX     #$4090
         LDB     #$22
         JSR     OUTPHR  ;PRINT THE MESSAGE.
@@ -466,20 +498,20 @@ ADVSWS  LDA     #$04    ;MAKE SURE THAT NO ONE INTERRUPTS US                    
         LDA     #$FF
         STA     INDIAG
         JSR     INITCM  ;INITIALIZE COLOR MATRIX
-        LDA     PIA0    ;CHECK WHICH TYPE OF TEST
+        LDA     PIA00    ;CHECK WHICH TYPE OF TEST
         RORA            ;AUTO UP??
         LBCS    BOOK    ;YEP...GO TO BOOKKEEPING
         JSR     SCCLR
         ORCC    #$BF    ;FIRQ ENABLED INDICATES NORMAL DIAGNOSTICS RUNNING.
         LDY     #DAG999
         JMP     BLKLED  ;BLANK THE LEDS
-DAG999  LDA     #WDATA
-        STA     WDOG
-        LDA     PIA0    ;WAIT FOR ADVANCE SWITCH LET GO
+DAG999      LDA   #WatchdogData
+    STA   WatchdogTimer
+        LDA     PIA00    ;WAIT FOR ADVANCE SWITCH LET GO
         BITA    #2
         BNE     DAG999
         LDY     #DIAG0
-        JMP     ROMTST  ;DO THE ROM TEST
+        JMP     RomTestRoutine  ;DO THE ROM TEST
 DIAG0   LDA     #RAM>>8                                                         ;;Fixme was: LDA  #RAM!>8
         TFR     A,DP
         JSR     SCCLR   ;CLEAR FOR ROMS MESSAGE.
@@ -487,9 +519,9 @@ DIAG0   LDA     #RAM>>8                                                         
         JSR     TEXT    ;PRINT THE MESSAGE
         LDB     #3
 DIG111  LDX     #$7000
-DIAG1   LDA     #WDATA
-        STA     WDOG
-        LDA     PIA0
+DIAG1       LDA   #WatchdogData
+    STA   WatchdogTimer
+        LDA     PIA00
         BITA    #2
         BNE     DIAG2   ;CONTINUE IF ADVANCE PRESSED.
         LEAX    -1,X
@@ -500,7 +532,7 @@ DIAG1   LDA     #WDATA
 DIG11S  LDY     #DIAG2                                                          ;;Fixme was: DIG11$
         LDX     #0
         LDA     #$FF    ;INDICATE FRONT DOOR
-        JMP     RAMTST  ;DO THE RAM TEST.
+        JMP     RamTestRoutine  ;DO THE RAM TEST.
 DIAG2   LDA     #1
         STA     RWCNTL
         LDA     #RAM>>8                                                         ;;Fixme was: LDA  #RAM!>8
@@ -508,15 +540,15 @@ DIAG2   LDA     #1
         JSR     SCCLR
         LDA     #TXRAMK
         JSR     TEXT    ;PRINT RAM OK MESSAGE
-DIAG22  LDA     #WDATA
-        STA     WDOG
-        LDA     PIA0
+DIAG22      LDA   #WatchdogData
+    STA   WatchdogTimer
+        LDA     PIA00
         BITA    #2
         BNE     DIAG22  ;HOLD CONTROL UNTIL LET GO.
 RAMERJ  LDX     #$9C00  ;RAM ERROR MESSAGE COMES HERE.
 DIAG3   CLR     ,X+     ;CLR USABLE MEMORY
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         CMPX    #HSTK+1
         BNE     DIAG3
         LDD     #$A55A
@@ -558,25 +590,30 @@ DIAG77  CLRA            ;SILENCE
         STA     SOUND
         JSR     AVWAIT  ;NOW WAIT FOR RELEASE.
         JSR     SWTEST  ;DO A SWITCH TEST.
+        ;
+        ; This is modded in DisplayLivesMod to make space for additional code.
+        ;
+EJP_DisplayLivesModHook
         JSR     AVWAIT  ;WAIT FOR RELESE
         JSR     CRTEST  ;DO THE COLOR MATRIX TEST
+        ;
         JSR     AVCHK   ;HOLDING BUTTON??
         BCC     DIAG78  ;NOPE...CONTINUE
         JSR     AVWAIT  ;WAIT FOR LET GO TIME.
 DIAG78  BRA     TSTPAT  ;DO SOME TEST PATTERNS  THEN GO TO BOOK.
 
-ZLED    CLR     PIA1    ;ZERO IN LED INDICATES ON LAST TEST OR DUN
+ZLED    CLR     PIA10    ;ZERO IN LED INDICATES ON LAST TEST OR DUN
         LDA     #$34
-        STA     PIA0+1
+        STA     PIA01
         INCA
-        STA     PIA1+1
+        STA     PIA11
         RTS
 ;*
-INITCM  LDX     #CRTAB
+INITCM  LDX     #ColorRamTable
         LDY     #PCRAM
 ADVS90  LDD     ,X++
         STD     ,Y++
-        CMPX    #CRTAB+16
+        CMPX    #ColorRamTable+16
         BLO     ADVS90
         RTS
 ;*
@@ -593,9 +630,9 @@ AUTCYC  LDA     #$3C    ;MAKE SURE THAT NO ONE INTERRUPTS US
         LDX     RAMALS+$600 ;TAKE A BYTE FROM THE RAM TEST
         LEAX    $1234,X ;ADD A STUPID NUMBER TO VARY TEST
         LDY     #AUTO1
-        JMP     RAMTST  ;TEST THE RAM
+        JMP     RamTestRoutine  ;TEST THE RAM
 AUTO1   LDY     #AUTO2
-        JMP     ROMTST
+        JMP     RomTestRoutine
 AUTO2   LDA     #RAM>>8                                                         ;;Fixme was: LDA  #RAM!>8
         TFR     A,DP
         LDS     #HSTK   ;JUST IN CASE
@@ -607,8 +644,8 @@ AUTO2   LDA     #RAM>>8                                                         
         LDA     #TXCMER
 AUTO8   JSR     SCCLR
         JSR     TEXT    ;PRINT THE ERROR
-AUTO5   LDA     #WDATA
-        STA     WDOG
+AUTO5       LDA   #WatchdogData
+    STA   WatchdogTimer
         BRA     AUTO5
 AUTO4   BSR     BARS
         LDY     #AUTCYC
@@ -637,8 +674,8 @@ BARS    LDX     #CRAM
         LDY     #CBARCL
 BARS0   LDD     ,Y++    ;GET A COLOR
         STD     ,X++
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         CMPX    #PCRAM+16
         BLO     BARS0
         LDD     #0
@@ -647,8 +684,8 @@ COLR1   STX     XTEMP                                                           
         LEAX    $F00,X
 COLOR2  STD     ,--X
         PSHS    A
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         PULS    A
         CMPX    XTEMP
         BNE     COLOR2
@@ -686,8 +723,8 @@ CROSS   JSR     SCCLR   ;CLEAR SCREEN
         LDY     #WVERT  ;MOVE WHITE VERTICALS
         LDD     #$0101
 CROSS4  LDX     0,Y     ;GET START PTR
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         LDB     #$01
 CROSS5  STD     ,X++    ;MOVE IN WHITE
         CMPX    2,Y     ;CK IF LINE DONE
@@ -701,8 +738,8 @@ CROSS2  LDX     0,Y     ;GET START PTR
         STX     XTEMP
 CROSS3  STA     0,X     ;MOVE IN WHITE
         INC     XTEMP   ;UPDATE PTR
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         LDX     XTEMP
         CMPX    2,Y     ;CK IF DONE
         BNE     CROSS3  ;NO, KEEP GOING
@@ -715,8 +752,8 @@ CROSS6  LDX     0,Y     ;GET START PTR
         LDA     4,Y     ;GET COLOR
 CROSS7  STA     0,X     ;MOVE IN COLOR
         INC     XTEMP
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         LDX     XTEMP
         CMPX    2,Y     ;CK IF LINE DONE
         BNE     CROSS7  ;NO, KEEP GOING
@@ -727,8 +764,8 @@ CROSS7  STA     0,X     ;MOVE IN COLOR
 CROSS8  LDX     0,Y     ;GET START PTR
         LDA     4,Y     ;GET COLOR
 CROSS9  STA     ,X+     ;MOVE IN COLOR
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         CMPX    2,Y     ;CK IF LINE DONE
         BNE     CROSS9  ;NO, KEEP GOING
         LEAY    5,Y     ;INCR Y BY 5
@@ -742,8 +779,8 @@ CROSS9  STA     ,X+     ;MOVE IN COLOR
 CROSSA  LDA     0,X
         ANDA    #$F0
         ORA     #$02
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         STA     ,X+
         CMPX    #$4B6D
         BNE     CROSSA
@@ -751,8 +788,8 @@ CROSSA  LDA     0,X
 CROSSB  LDA     0,X
         ANDA    #$F0
         ORA     #$02
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         STA     ,X+
         CMPX    #$4BF3
         BNE     CROSSB
@@ -777,8 +814,8 @@ CROSSD  LDB     #$18
         BNE     CROSSC  ;NO, KEEP GOING
         LDB     #1
         STB     RWCNTL
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         RTS
 ;*
 ;* CROSS HATCH DATA
@@ -913,8 +950,8 @@ RAMBA1  STX     XTEMP   ;SAVE OUR X
         LDA     ,Y+
 RAMBA2  TFR     A,B
         STD     ,--X
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         CMPX    XTEMP
         BNE     RAMBA2
         LEAX    $900,X
@@ -945,8 +982,8 @@ SWTEST  LDA     #10
         JSR     SCCLR   ;CLEAR IT PLEASE
         LDA     #TXSWTS ;SWITCH TEST MESSAGE.
         JSR     TEXT
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         LDU     #SW0ST
 SWTES0  CLR     ,U+
         CMPU    #SW3SCI
@@ -954,17 +991,17 @@ SWTES0  CLR     ,U+
 SWTES2  LDU     #STABP
         BSR     SWSCN0
 SWTES1  LDA     #$34
-        STA     PIA3+1
-        LDB     #WDATA
-        STB     WDOG
+        STA     PIA31
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         BSR     SWSCN0  ;SCAN THE COCKTAIL SIDE
         LDA     #$3C
-        STA     PIA3+1
+        STA     PIA31
         BSR     SWDISP
         JSR     AVCHK   ;ADVANCE PRESSED?
         BCC     SWT999  ;NOPE.
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         DEC     XTEMP
         BEQ     SWTBYE
 SWT999  CLRA
@@ -991,12 +1028,12 @@ SWDIS0  BITB    1,Y     ;SEE IF THIS BIT CHANGED.
 SWDIS2  LEAU    3,U     ;MOVE TO NEXT ENTRY
         ASLB            ;SHIFT ONE DOWN
         BCC     SWDIS0
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         LEAY    2,Y     ;TO NEXT BYTE
         CMPY    #SW3SCI ;PAST TABLE
         BHI     SWDIS9  ;YEP..DONE
-;*      LDA     PIA3    ;COCKTABLE
+;*      LDA     PIA30    ;COCKTABLE
 ;*      BMI     SWDIS4  ;YEP...FULL SCAN
         BRA     SWDIS4  ;YEP...FULL SCAN
         CMPY    #SW3SCN ;NOPE..DONE WITH NORMAL SWITCHES??
@@ -1015,8 +1052,8 @@ SWACT   PSHS    B,X     ;SAVE THE MASK
         BEQ     SWNOAC
         LDA     #$40    ;X
         TFR     D,X     ;MAKE IT CURSOR
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         LDD     #$3006!DMAFIX                                           ;;Fixme was: LDD  #$3006!XDMAFIX
 
         STD     $CA06   ;DMA X and Y SIZE
@@ -1027,65 +1064,65 @@ SWACT   PSHS    B,X     ;SAVE THE MASK
         LDB     #$12    ;CONSTANT SUBSTITUTION, WRITE BLOCK
         STB     $CA00   ;AND LET THE DMA GO!!!!
 
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         PULS    B,X,PC
 SWPRNT  LDB     2,U     ;GET HEIGHT
         BEQ     SWNOAC
         LDA     #$40    ;CURSOR
         TFR     D,X
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         LDB     #$BB
         LDA     ,U      ;GET MESSAGE NUMBER
         JSR     OUTP35  ;AND PRINT IT.
         LDA     1,U     ;GET THE PLAYER NUMBER
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         LDB     #$BB
         JSR     OUTB35
         LDA     #$3C
         STA     SOUND   ;MAKE A SOUND
 SWNOAC  PULS    B,X,PC  ;AND RETURN.
 
-STABP   FDB     PIA0,SW0ST
-        FDB     PIA2,SW2ST
-        FDB     PIA3,SW3ST
+STABP   FDB     PIA00,SW0ST
+        FDB     PIA20,SW2ST
+        FDB     PIA30,SW3ST
         FDB     0
-        FDB     PIA2,SW2STI
-        FDB     PIA3,SW3STI
+        FDB     PIA20,SW2STI
+        FDB     PIA30,SW3STI
         FDB     0
 
-SPHTAB  FCB     MSSWCH,$FF,SWMH         ;AUTO UP
-        FCB     MSSWCH+1,$FF,SWMH+7     ;ADVANCE
-        FCB     MSSWCH+2,$FF,SWMH+14    ;RIGHT COIN
-        FCB     MSSWCH+3,$FF,SWMH+21    ;HIGH SCORE RESET
-        FCB     MSSWCH+4,$FF,SWMH+28    ;LEFT COIN
-        FCB     MSSWCH+5,$FF,SWMH+35    ;CENTER COIN
-        FCB     MSSWCH+6,$FF,SWMH+42    ;SLAM SWITCH
+SPHTAB  FCB     Messages_StartOfSwitchNames,$FF,SWMH         ;AUTO UP
+        FCB     Messages_StartOfSwitchNames+1,$FF,SWMH+7     ;ADVANCE
+        FCB     Messages_StartOfSwitchNames+2,$FF,SWMH+14    ;RIGHT COIN
+        FCB     Messages_StartOfSwitchNames+3,$FF,SWMH+21    ;HIGH SCORE RESET
+        FCB     Messages_StartOfSwitchNames+4,$FF,SWMH+28    ;LEFT COIN
+        FCB     Messages_StartOfSwitchNames+5,$FF,SWMH+35    ;CENTER COIN
+        FCB     Messages_StartOfSwitchNames+6,$FF,SWMH+42    ;SLAM SWITCH
         FCB     0,0,0   ;UNUSED         ;(SOUND HANDSHAKE)
 ;*
-        FCB     MSSWCH+9,$F1,SWMH+49    ;MOVE LEFT PLAYER 1
-        FCB     MSSWCH+10,$F1,SWMH+56   ;MOVE RIGHT PLAYER 1
-        FCB     MSSWCH+11,$F1,SWMH+63   ;FLAP PLAYER 1
+        FCB     Messages_StartOfSwitchNames+9,$F1,SWMH+49    ;MOVE LEFT PLAYER 1
+        FCB     Messages_StartOfSwitchNames+10,$F1,SWMH+56   ;MOVE RIGHT PLAYER 1
+        FCB     Messages_StartOfSwitchNames+11,$F1,SWMH+63   ;FLAP PLAYER 1
         FCB     0,0,0   ;UNUSED
-        FCB     MSSWCH+8,$FF,SWMH+70    ;START ONE
-        FCB     MSSWCH+7,$FF,SWMH+77    ;START TWO
-        FCB     0,0,0   ;UNUSED
-        FCB     0,0,0   ;UNUSED
-;*
-        FCB     0,0,0   ;UNUSED
-        FCB     0,0,0   ;UNUSED
-        FCB     0,0,0   ;UNUSED
-        FCB     0,0,0   ;UNUSED
-        FCB     0,0,0   ;UNUSED
-        FCB     0,0,0   ;UNUSED
+        FCB     Messages_StartOfSwitchNames+8,$FF,SWMH+70    ;START ONE
+        FCB     Messages_StartOfSwitchNames+7,$FF,SWMH+77    ;START TWO
         FCB     0,0,0   ;UNUSED
         FCB     0,0,0   ;UNUSED
 ;*
-        FCB     MSSWCH+9,$F2,SWMH+84    ;MOVE LEFT PLAYER 2
-        FCB     MSSWCH+10,$F2,SWMH+91   ;MOVE RIGHT PLAYER 2
-        FCB     MSSWCH+11,$F2,SWMH+98   ;FLAP PLAYER 2
+        FCB     0,0,0   ;UNUSED
+        FCB     0,0,0   ;UNUSED
+        FCB     0,0,0   ;UNUSED
+        FCB     0,0,0   ;UNUSED
+        FCB     0,0,0   ;UNUSED
+        FCB     0,0,0   ;UNUSED
+        FCB     0,0,0   ;UNUSED
+        FCB     0,0,0   ;UNUSED
+;*
+        FCB     Messages_StartOfSwitchNames+9,$F2,SWMH+84    ;MOVE LEFT PLAYER 2
+        FCB     Messages_StartOfSwitchNames+10,$F2,SWMH+91   ;MOVE RIGHT PLAYER 2
+        FCB     Messages_StartOfSwitchNames+11,$F2,SWMH+98   ;FLAP PLAYER 2
         FCB     0,0,0   ;UNUSED
         FCB     0,0,0   ;UNUSED
         FCB     0,0,0   ;UNUSED
@@ -1109,24 +1146,24 @@ FDROM0  LDS     #HSTK
 FDROM5  LDY     #FDROM6
         LDA     #1
         JMP     DELA1
-FDROM6  LDA     PIA0
+FDROM6  LDA     PIA00
         BITA    #$2
         BNE     FDROM5
 FDROM1  LDY     #FDROM7
         LDA     #1
         JMP     DELA1
-FDROM7  LDA     PIA0
+FDROM7  LDA     PIA00
         BITA    #$2
         BEQ     FDROM1
 FDROM2  LDY     #FDROM8
         LDA     #1
         JMP     DELA1
-FDROM8  LDA     PIA0
+FDROM8  LDA     PIA00
         BITA    #2
         BNE     FDROM2
         JMP     ,U
 
-AVWAIT  LDA     PIA0    ;SEE IF ADVANCE PRESSED
+AVWAIT  LDA     PIA00    ;SEE IF ADVANCE PRESSED
         BITA    #$2     ;WELL??
         BNE     AVWAT2
         LDA     #$01
@@ -1135,7 +1172,7 @@ AVWAIT  LDA     PIA0    ;SEE IF ADVANCE PRESSED
 AVWAT2  CLR     CRAM
         JSR     SCCLR
         BRA     AVWAT5
-AVWAT4  LDA     PIA0
+AVWAT4  LDA     PIA00
         BITA    #$2     ;WAIT FOR IT TO BE RELEASED
         BEQ     AVWAT3
 AVWAT5  LDA     #$01
@@ -1143,7 +1180,7 @@ AVWAT5  LDA     #$01
         BRA     AVWAT4
 AVWAT3  RTS
 
-AVCHK   LDA     PIA0
+AVCHK   LDA     PIA00
         BITA    #$2
         BEQ     AVCHK1
         ORCC    #$01    ;SEC
@@ -1151,9 +1188,9 @@ AVCHK   LDA     PIA0
 AVCHK1  ANDCC   #$FE    ;CLC
         RTS
 
-JNAP    LDB     #WDATA
+JNAP    LDB     #WatchdogData
         LDX     #$0300
-.1S     STB     WDOG
+.1S     STB     WatchdogTimer
         LEAX    -1,X
         BNE     .1S
         DECA
@@ -1174,7 +1211,7 @@ BOOK3   LDA     #TXBOOK
         JSR     TEXT    ;PRINT THE BOOKKEEPING MESSAGE
         LDU     #SLOT1
         LDX     #$1A30
-        LDA     #MSAUD  ;FIRST OF THE AUDIT MESSAGES
+        LDA     #Messages_StartOfBookkeepingTotals  ;FIRST OF THE AUDIT MESSAGES
 BOOK0   PSHS    A,X     ;SAVE MESSAGE NUMBER
         LDB     #$88
         JSR     OUTPHR  ;PRINT IT.
@@ -1211,16 +1248,16 @@ BOOK0   PSHS    A,X     ;SAVE MESSAGE NUMBER
         PULS    A
         LDB     #$88
         JSR     OUTBCD
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         TFR     Y,D
         PSHS    B
         LDB     #$88
         JSR     OUTBCD
         PULS    A
         JSR     OUTBCD
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
 
 BOOK2   PULS    A,X     ;RESTORE A
         LEAX    $10,X
@@ -1228,7 +1265,7 @@ BOOK2   PULS    A,X     ;RESTORE A
         CMPU    #ENDBOK
         BLS     BOOK0   ;THANK YOU SIR, MAY I HAVE ANOTHER??
 
-        LDA     #MSTIM
+        LDA     #Message_BookkeepingAverageTimePerCredit
         LDB     #$88
         JSR     OUTPHR
         TFR     X,D
@@ -1256,8 +1293,8 @@ BOOK2   PULS    A,X     ;RESTORE A
         JSR     OUTCHR
         LDA     BCDN+2
         JSR     OUTBCD
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
 
         JSR     AVWAIT
         JMP     ADJUST  ;NOW GO DO ADJUSTMENT MODE
@@ -1423,7 +1460,7 @@ ADJS11  CLR     ,X+
         JSR     TEXT    ;PRINT THE ADJUSTMENT MESSAGE
         LDU     #CMOS
         LDX     #$1A20
-        LDA     #MSADJS ;FIRST OF THE AUDIT MESSAGES
+        LDA     #Messages_StartOfAdjustmentMessages ;FIRST OF THE AUDIT MESSAGES
 .4S     PSHS    A,X     ;SAVE MESSAGE NUMBER
         LDB     #$22
         JSR     OUTP35  ;PRINT IT.
@@ -1432,8 +1469,8 @@ ADJS11  CLR     ,X+
         TFR     X,Y
         JSR     OUTCMOS
         LEAU    2,U
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         PULS    A,X     ;RESTORE A
         LEAX    $A,X
         INCA
@@ -1459,20 +1496,20 @@ CURSOR  LDY     #$1620  ;FIRST CURSOR POSITION
         LDB     #$33    ;GET THE COLOR
         STD     SW0ST   ;SAVE THE CURSOR COLOR AND CHARACTER OFFSET IN MEMORY
         JSR     OUTC35  ;WRITE THE 3X5 CURSOR OUT
-.1S     LDA     #WDATA  ;LET'S GO AND PET THE FUCKING DOG..........
-        STA     WDOG
-        LDA     PIA2    ;CHECK THE SWITCHES
+.1S         LDA   #WatchdogData
+    STA   WatchdogTimer
+        LDA     PIA20    ;CHECK THE SWITCHES
         ANDA    #$03    ;WE ONLY WANT BITS 0&1 (THIS IS FOR JOUST)
         BEQ     .3S     ;BRA= NO
         BSR     CSWIT   ;SEE WHO IT IS
 .3S     LDB     #$34    ;FLIP TO THE COCKTAIL SIDE
-        STB     PIA3+1
-        LDA     PIA2    ;GET THE REST OF THEM
+        STB     PIA31
+        LDA     PIA20    ;GET THE REST OF THEM
         ANDA    #$03    ;WE ONLY WANT BITS 0&1 (THIS IS FOR JOUST)
         BEQ     .2S     ;BRA=NO
         JSR     CSWIT1  ;SEE WHO THEY ARE
 .2S     LDB     #$3C    ;SET BACK TO THE NORMAL SIDE
-        STB     PIA3+1
+        STB     PIA31
         JSR     AVCHK   ;CHECK TO SEE IF THE ADVANCE SWITCH HAS BEEN PRESSED
         BCC     .1S     ;NOT EVEN AN ADVANCE SO LETS CHECK THEM AGAIN
         JSR     AVWAIT
@@ -1487,11 +1524,11 @@ CSWIT   STA     SW3ST   ;SAVE THE SWITCH
         STA     SW2ST   ;SAVE THE SWITCH
         LDA     #$2     ;       NAP ONLY 16 MS
         JSR     JNAP    ;AND TAKE A CAT NAP
-        LDA     PIA2    ;READ THE PORT TO MAKE SURE THAT IT IS VALID
+        LDA     PIA20    ;READ THE PORT TO MAKE SURE THAT IT IS VALID
         BNE     .3S
 .1S     LDB     #$05    ;TIME TO WAIT
         STB     SW3SCN  ;SAVE IT
-.5S     LDA     PIA2    ;READ THE PORT
+.5S     LDA     PIA20    ;READ THE PORT
         BNE     .2S     ;BRA= STILL PRESSED
         CLR     SW2ST   ;SAY THAT NO SWITCH HAS BEEN PRESSED
         RTS             ;TOO BAD YOU LET GO
@@ -1499,7 +1536,7 @@ CSWIT   STA     SW3ST   ;SAVE THE SWITCH
         JSR     JNAP    ;AND TAKE A CAT NAP
         DEC     SW3SCN  ;ONE LESS TIME
         BNE     .5S     ;NOT DONE SO CHECK AGAIN
-        LDA     PIA2    ;READ ONCE AGAIN
+        LDA     PIA20    ;READ ONCE AGAIN
 
 .3S     BITA    #$02    ;DID HE PRESS MOVE LEFT
         BNE     .4S     ;BRA= YES HE DID SO MOVE THE CURSOR UP
@@ -1551,11 +1588,11 @@ CSWIT1  STA     SW3ST   ;SAVE THE SWITCH
         STA     SW2STI  ;SAVE THE SWITCH
         LDA     #$2     ;       NAP ONLY 16 MS
         JSR     JNAP    ;AND TAKE A CAT NAP
-        LDA     PIA2    ;READ THE PORT TO MAKE SURE THAT IT IS VALID
+        LDA     PIA20    ;READ THE PORT TO MAKE SURE THAT IT IS VALID
         BNE     .3S
 .1S     LDB     #$08    ;TIME TO WAIT
         STB     SW3SCI  ;SAVE IT
-.5S     LDA     PIA2    ;READ THE PORT
+.5S     LDA     PIA20    ;READ THE PORT
         BNE     .2S     ;BRA= STILL PRESSED
         CLR     SW2SCI  ;SAY THAT NO SWITCH HAS BEEN PRESSED
         RTS             ;TOO BAD YOU LET GO
@@ -1563,7 +1600,7 @@ CSWIT1  STA     SW3ST   ;SAVE THE SWITCH
         JSR     JNAP    ;AND TAKE A CAT NAP
         DEC     SW3SCI  ;ONE LESS TIME
         BNE     .5S     ;NOT DONE SO CHECK AGAIN
-        LDA     PIA2    ;READ ONCE AGAIN
+        LDA     PIA20    ;READ ONCE AGAIN
 
 .3S     PSHS    A
         TFR     U,X     ;GET THE CMOS LOCATION
@@ -1572,8 +1609,8 @@ CSWIT1  STA     SW3ST   ;SAVE THE SWITCH
         CLRB
         STB     COLR
         BSR     OUTCMOS
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         LDX     #MINMAX ;GET THE TABLE OF MAXIMUMS AND MINIMUMS
         TFR     U,D
         LEAX    B,X
@@ -1650,10 +1687,10 @@ OUTSPC  LDA     0,X
         BNE     .1S
         TFR     U,X
         JSR     RCMSB
-        LDA     #MSNO
+        LDA     #Message_No
         TSTB
         BEQ     .2S
-        LDA     #MSYES
+        LDA     #Message_AdjustmentsYes
 .2S     PSHS    A
         TFR     Y,D
         LDA     #$6A
@@ -1718,8 +1755,8 @@ PRICOUT PSHS    D,U,X,Y
         BEQ     .1S
         LDA     ,U+
         JSR     WCMSA
-        LDB     #WDATA
-        STB     WDOG
+            LDB   #WatchdogData
+    STB   WatchdogTimer
         EXG     U,X
         LEAY    $A,Y
         PSHS    X
@@ -1779,7 +1816,7 @@ SNDCY1  LDD     SW0SCN
         STA     SOUND
         LDB     #$99
         LDX     #$3A80
-        LDA     #MSSND
+        LDA     #Message_SoundLine
         JSR     OUTPHR
         LDA     SW0SCN+1
         ORA     #$F0
@@ -1795,7 +1832,7 @@ SNDCY5  JSR     AVCHK   ;ADVANCE???
         BNE     SNDCY4
 SNDCY3  LDA     FDTEST  ;SEE WHO SET THIS UP??
         BNE     SNDC90  ;AUTOCY DID....ALWAYS ADVANCE
-        LDA     PIA0    ;CHECK MANUAL/AUTO
+        LDA     PIA00    ;CHECK MANUAL/AUTO
         RORA
         BCC     SNDC91  ;MANUAL...DON'T MOVE ON.
 SNDC90  LDX     #$5780
@@ -1830,8 +1867,8 @@ CMTST2  LDU     HSEED
         LDX     #CMOS
 CMTST3  JSR     RAND
         STA     ,X+
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         CMPX    #CMOS+$400 ;DONE??
         BNE     CMTST3
         STY     SEED     ;RESTORE SEED
@@ -1841,8 +1878,8 @@ CMTST4  JSR     RAND
         EORA    ,X+
         ANDA    #$F
         BNE     CMEROR
-        LDA     #WDATA
-        STA     WDOG
+            LDA   #WatchdogData
+    STA   WatchdogTimer
         CMPX    #CMOS+$400
         BNE     CMTST4
         DECB            ;ANOTHER PASS...DONE??
@@ -1892,7 +1929,7 @@ RAND    PSHS    B
         FCC     ' JOUST - COPYRIGHT  (C) 1982 WILLIAMS ELECTRONICS INC. '
         FCC     ' ALL RIGHTS RESERVED '
 
-IRQVEC  JMP     [$EFF8]
+IRQVector  JMP     [IRQHandlerPointer]
 
 
 CYCLE   LDA     #PRAM
@@ -1996,7 +2033,7 @@ TSTEND  EQU     *                                                               
 TSTLEN  EQU     TSTEND-TSTORG                                                           ;;Fixme was: LENGTH     EQU     ENDADR-TSTORG (multiple duplicate symbols)
 ;*
         ORG     TSTORG+$FF0
-        FDB     PWRUPV,PWRUPV,PWRUPV,PWRUPV
-        FDB     IRQVEC,PWRUPV,PWRUPV,PWRUPV
+        FDB     PowerUpVector,PowerUpVector,PowerUpVector,PowerUpVector
+        FDB     IRQVector,PowerUpVector,PowerUpVector,PowerUpVector
 ;*
 ;       END     ;SystemVectors

@@ -2597,7 +2597,7 @@ FL3     FDB     $060B!DMAFIX                                                    
 ;*
 ;*      PTERODACTYL, FLYING ONLY IMAGES
 ;*
-_IPTERO POSOFF  PT1RC,1,11,PT1R
+_IPTERO POSOFF  PT1RC,1,11,Pterodactyl1Right
         POSOFF  PT1LC,1,11,PT1L
         POSOFF  PT2RC,1,07,PT2R
         POSOFF  PT2LC,0,07,PT2L
@@ -2690,7 +2690,9 @@ PT3LC   FDB     $8000,$8000
 ;*
 ;*AAFF0E0E80C2FF00FF40FF00FF00FF00
 ;*00FF70580F3F51E814905D111FA40A67
-PT1R    FDB     $0D0A!DMAFIX                                                    ;;Fixme was: !XDMAFIX
+
+Pterodactyl1Right
+        FDB     $0D0A!DMAFIX                                                    ;;Fixme was: !XDMAFIX
         FCB     $99,$99,$F6,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
         FCB     $00,$09,$44,$F7,$90,$00,$00,$00,$00,$00,$00,$00,$00
         FCB     $00,$00,$00,$44,$CF,$79,$00,$00,$00,$00,$00,$00,$00
@@ -2814,12 +2816,10 @@ _ASH1L
         FCB     $1E,$2E,$20,$1E,$14,$00
 
     ; check to see if the current address is LARGER than the provided limit -- if it is, then throw an error.
-    IF (* - JoustImagesRamEnd) > 0
-        ERROR "\a The module is too large to fit in the current address space.  [ JoustImagesRam: $\{JoustImagesRam} - $\{JoustImagesRamEnd} = $\{JoustImagesRamEnd - JoustImagesRam} vs. actual of $\{* - JoustImagesRam} ($\{* - JoustImagesRamEnd} bytes too large) ]"
-    ENDIF
-    IF (* - JoustImagesRamEnd) = 0
-        MESSAGE "\a The module is precisely sized to the current address space.  [ JoustImagesRam: $\{JoustImagesRam} - $\{JoustImagesRamEnd} = $\{JoustImagesRamEnd - JoustImagesRam} vs. actual of $\{* - JoustImagesRam} ]"
-    ENDIF
-    IF (* - JoustImagesRamEnd) < 0
-        WARNING "\a The module is smaller than the current address space.  [ JoustImagesRam: $\{JoustImagesRam} - $\{JoustImagesRamEnd} = $\{JoustImagesRamEnd - JoustImagesRam} vs. actual of $\{* - JoustImagesRam} ($\{JoustImagesRamEnd - *} bytes unused) ]"
+    IF (* < (JoustImagesRamEnd + 1))
+        WARNING "\a The module is smaller than the current address space.  [ JoustImagesRam: $\{JoustImagesRam} -> $\{JoustImagesRamEnd} => max $\{(JoustImagesRamEnd - JoustImagesRam) + 1} bytes allowed vs. actual of $\{* - JoustImagesRam} bytes used ($\{(JoustImagesRamEnd - *) + 1} bytes unused) ]"
+    ELSEIF (* = (JoustImagesRamEnd + 1))
+        MESSAGE "\a The module is precisely sized to the current address space.  [ JoustImagesRam: $\{JoustImagesRam} -> $\{JoustImagesRamEnd} => $\{JoustImagesRamEnd - JoustImagesRam + 1} bytes]"
+    ELSE
+        ERROR "\a The module is too large to fit in the current address space.  [ JoustImagesRam: $\{JoustImagesRam} -> $\{JoustImagesRamEnd} => $\{(JoustImagesRamEnd - JoustImagesRam) + 1} bytes expected vs. actual of $\{(* - JoustImagesRam) + 1} bytes ($\{* - JoustImagesRamEnd} bytes too large) ]"
     ENDIF

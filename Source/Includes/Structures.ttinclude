@@ -1,0 +1,29 @@
+<#+
+[Flags]
+protected enum InputButton
+{
+    P1Start = 0x01,
+    P1Left  = 0x02, 
+    P1Right = 0x04, 
+    P1Flap  = 0x08,
+    P2Start = 0x10, 
+    P2Left  = 0x20, 
+    P2Right = 0x40, 
+    P2Flap  = 0x80
+}
+
+protected enum InputState
+{
+    Pressed, Released
+}
+
+protected enum Register
+{
+    A, B
+}
+
+protected enum Player
+{
+    P1, P2
+}
+#>
