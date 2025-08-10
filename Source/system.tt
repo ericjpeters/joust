@@ -80,28 +80,28 @@ INIT2   LDA     #$A0            ;SET-UP BASE PAGE                               
 ;*
 ;*  PIA INITIALIZATION
 ;*  DATA DIRECTION
-        STA     WCPIAA
-        STA     WCPIAB
-        STA     WPIAA           ;INPUTS
-        STA     WPIAB           ;INPUTS
+        STA     PIA_ControlA
+        STA     PIA_ControlB
+        STA     PIA_InputA           ;INPUTS
+        STA     PIA_InputB           ;INPUTS
         LDB     #%00110100      ;$34
-        STB     WCPIAA          ;SETUP, WIDGET FOR SWITCH INPUTS
-        STB     WCPIAB
+        STB     PIA_ControlA          ;SETUP, WIDGET FOR SWITCH INPUTS
+        STB     PIA_ControlB
 ;*
 ;*      IRQ, 7-SEG, SOUND PIA INITIALIZATION
 ;*      INTERRUPTS
 ;*
-        STA     CPIAA
-        STA     CPIAB
-        STA     PIAA            ;INPUTS
+        STA     PIA01
+        STA     PIA11
+        STA     PIA00            ;INPUTS
         COMA
-        STA     PIAB            ;OUTPUTS
+        STA     PIA10            ;OUTPUTS
         LDB     #%00110100      ;IGNORE CNT240 INTERUPT
-        STB     CPIAA
+        STB     PIA01
         LDB     #%00110101      ;BUT ENABLE PIA'S 4MS INTERUPT LOW-HIGH EDGE
-        STB     CPIAB
+        STB     PIA11
         LDB     #$3F            ;INHIBIT 1ST SOUND
-        STB     PIAB            ; (AND MAKE 7-SEGMENT DISPLAY A ZERO)
+        STB     PIA10            ; (AND MAKE 7-SEGMENT DISPLAY A ZERO)
 ;*
 ;*      CLOSE COINS SWITCHES VIA SOFTWARE (WHO KNOWS WHAT
 ;*
@@ -188,9 +188,9 @@ EXEINT  TST     ,X              ;IS THIS TABLE READY TO BE WRITTEN INTO?
 .1S     STX     SNDPTR
         STB     STMR
         LDB     #$FF            ;SEND THE SOUND TO THE SOUND BOARD
-        STB     PIAB
+        STB     PIA10
         ANDA    #$3F            ;DO NOT DISTURBE 7-SEGMENT DISPLAY
-        STA     PIAB
+        STA     PIA10
 EXESND  EQU     *
 ;*
         CLRA                    ;NOW RESET FORGROUNDS CLEAR & WRITE POINTERS
@@ -393,10 +393,10 @@ CRPROC  LDU     PEXEC
 CUPROC  PSHS    D
         LDY     PFREE
       IF DEBUG2 <> 0                                                            ;;Fixme was: IFN DEBUG2
-         BNE    CRPRAM          ;BR=RAM AVAILABLE
+         BNE    CreateProcessRam          ;BR=RAM AVAILABLE
          SWI                    ;HERE IF OUT OF PROCESS BLOCKS
       ENDIF
-CRPRAM  LDD     PLINK,Y         ;REMOVE NEW LINK FROM..
+CreateProcessRam  LDD     PLINK,Y         ;REMOVE NEW LINK FROM..
         STD     PFREE           ; FREE PROCESS RAM
         LDD     PLINK,U         ;MAKE NEXT ACTIVE PROC LINK AFTER...
         STD     PLINK,Y         ; NEWLY CREATED PROCESS
@@ -588,7 +588,7 @@ IRQ     STS     IRQSTK          ;REMEMBER STACK POINTER (NO DCON FROM NOW ON!)
         LDA     DRRUC           ;DMA READS ROM!
         ORA     #1
         STA     RRUC
-        LDB     PIAB            ;CLEAR 4MS
+        LDB     PIA10            ;CLEAR 4MS
         LDB     VSCAN
         ANDB    #$C0            ;SHOW ONLY VALID INTERUPT BITS
         LBNE    IRQ2            ;UPDATE COLOR RAM ON VERTICAL LINE 0
@@ -635,7 +635,7 @@ IRQSLM
         STD     SWT0+3
         LDD     SWT0
         STD     SWT0+1
-        LDA     PIAA            ;READ SWITCHES (3 COINS,H.S. RESET,ADVANCE)
+        LDA     PIA00            ;READ SWITCHES (3 COINS,H.S. RESET,ADVANCE)
         STA     SWT0+0
         BITA    #$40            ;SLAM SWITCH CLOSED?
         BEQ     IRQNSL          ; BR=NO
@@ -708,15 +708,15 @@ IRQNXT  STA     >ISQCNT
         STX     >ISQPTR
         LEAX    0,U             ;ANY DATA TO MOVE?
         BEQ     IRQSKD          ; BR=NO, SO SKIP THE DMA OPERATION
-        DEC     >CPIAB          ;DISABLE PIA INTERUPTS (PLAYING WITH CC)
-        LDA     PIAB            ;CLEAR 4MS INTERUPT, JUST IN CASE...
+        DEC     >PIA11          ;DISABLE PIA INTERUPTS (PLAYING WITH CC)
+        LDA     PIA10            ;CLEAR 4MS INTERUPT, JUST IN CASE...
 IRQDMA  LDS     #DMA+8          ;START/RESTART DMA LOOPING
         PULU    CC,D,DP,X,Y
         PSHS    CC,D,DP,X,Y     ;DMA OPERATION STARTED & COMPLETED
         LDU     ,U              ;NEXT DMA OPERATION
         BNE     IRQDMA          ; BR=VALID LINK
         ORCC    #$FF            ;DMA COMPLETE, MAKE SURE INTERUPTS ARE OFF!
-        INC     >CPIAB          ;ENABLE PIA INTERUPTS TO MICRO-PROCESSOR
+        INC     >PIA11          ;ENABLE PIA INTERUPTS TO MICRO-PROCESSOR
 IRQSKD  LDA     >ISQCNT         ;BUMP QUADRANT COUNTER (SAME AS VERT COUNTER)
         ADDA    #$40
         BNE     IRQNXT          ;BR=MORE QUADRANTS TO DO, TRY TO DO IT ANY WAYS

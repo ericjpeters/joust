@@ -153,7 +153,7 @@ PauseDelay
 
 PauseExit PULS    D             ;grab D from stack                                                                  ; pop D from the stack
         ANDCC   #$EF                                                                                                ; Clears the interrupt mask (CC 0x10)
-        LDA     WPIAA           ;READ JOYSTICK (restore trashed instruction from $DDC1)                             ; ??
+        LDA     PIA_InputA           ;READ JOYSTICK (restore trashed instruction from $DDC1)                             ; ??
         JMP     $DDC4           ;go back to Game Logic                                                              ; ??
         FDB     $00FA           ;$FA = CHECKSUM FIX
 

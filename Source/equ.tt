@@ -30,7 +30,7 @@ WatchdogData   EQU     $39     ;AND WHAT TO FEED HIM
 AEND    EQU     $1620
 ATOP    EQU     $16CA
 CMOS    EQU     $CC00   ;CMOS MEMORY
-SOUND   EQU     $C80E   ;SOUND SIDE OF PIA
+SOUND   EQU     PIA10   ;SOUND SIDE OF PIA
 RED     EQU     $55
 GREEN   EQU     $77
 VERTCT  EQU     $CB00   ;6-BIT VERTICAL BEAM ADDR
@@ -67,7 +67,7 @@ PIA11                   EQU         $C80F       ; B. SIDE OF THE COIN DOOR PIA
                                                 ; * CB1 IRQ 4 MS (0,$40,$80,$C0)
                                                 ; * CB2 LED2
 
-PIA20                   EQU         $C804       ; A. SIDE OF THE WIDGET (STARGATE STYLE WIDGET)
+PIA_InputA              EQU         $C804       ; A. SIDE OF THE WIDGET (STARGATE STYLE WIDGET)
                                                 ; * B0    PLAYER 1 MOVE LEFT
                                                 ; * B1    PLAYER 1 MOVE RIGHT
                                                 ; * B2
@@ -77,14 +77,14 @@ PIA20                   EQU         $C804       ; A. SIDE OF THE WIDGET (STARGAT
                                                 ; * B6
                                                 ; * B7
 
-PIA21                   EQU         $C805       ; A. SIDE OF THE WIDGET (STARGATE STYLE WIDGET)
+PIA_ControlA            EQU         $C805       ; A. SIDE OF THE WIDGET (STARGATE STYLE WIDGET)
 
-PIA30                   EQU         $C806       ; B. SIDE OF THE WIDGET
+PIA_InputB              EQU         $C806       ; B. SIDE OF THE WIDGET
                                                 ; * B0    PLAYER 2 MOVE LEFT
                                                 ; * B1    PLAYER 2 MOVE RIGHT
                                                 ; * B7    INPUT 1=COCKTAIL
 
-PIA31                   EQU         $C807       ; B. SIDE OF THE WIDGET
+PIA_ControlB            EQU         $C807       ; B. SIDE OF THE WIDGET
                                                 ; * CB2   OUTPUT SWITCH MUX CONTROL 1=PLAYER1,0=PLAYER2
 
 ;*      'ENTER' - ENTER CHARACTERS....ALL OFFSETS ARE FROM REG Y.

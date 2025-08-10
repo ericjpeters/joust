@@ -223,7 +223,7 @@ DYWORD  MACRO START1,START2,START3,INCRE,ENDV,TIM1,TIM2,TIM3
 ;*      THE PROGRAM'S VECTORS
 ;*
 ;* *********************************************************************
-                        ORG     GAMORG
+                        ORG     GameRam
 VPowerUpHandler         JMP     ATTRCT          ;POWER UP VECTOR
 VATTRT                  JMP     ATTRC2          ;RETURN HERE AFTER H.S.T.D.
 VGSTART                 FDB     GSTART          ;GAME START BUTTON MONITOR ROUTINE
@@ -685,10 +685,10 @@ GOVERM  LDX     #$3090
         JMP     OUTPHR
 ;*
 GOVWAT  LDA     #11             ;8*11 OR 88 TICK WAIT
-        STA     PRAM,U
+        STA     ProcessRam,U
 .1S     JSR     GOVERM
         PCNAP   8               ;WAIT FOR A WHILE
-        DEC     PRAM,U
+        DEC     ProcessRam,U
         BNE     .1S
         LDX     #HSPP1          ;CLEAR OUT OLD HIGHLITED H.S.T.D. LETTERS
 .2S     CLR     ,X+
@@ -705,10 +705,10 @@ ATTRC2  CLR     CRDCHG          ;RESET CHANGE IN CREDITS
 ;*
 ;*
 .10S    LDA     #109            ;8*11 OR 88 TICK WAIT
-        STA     PRAM,U
+        STA     ProcessRam,U
 .1S     JSR     GOVERM
         PCNAP   8               ;WAIT FOR A WHILE
-        DEC     PRAM,U
+        DEC     ProcessRam,U
         BNE     .1S
 SIM3A   PKILL   $00,$00         ;KILL EVERYONE
 HSTD    LDX     #NULL
@@ -726,28 +726,28 @@ ATTRCT  CLR     GOVER           ;STATE OF GAME = OVER
         RORA
         BCC     .20S            ; BR=NO, GO TO NEXT MENU
         LDD     #15*60          ;15 SECONDS OF HIGH SCORE TO DATE PAGE
-        STD     PRAM,U
-        CLR     PRAM+3,U
+        STD     ProcessRam,U
+        CLR     ProcessRam+3,U
         LDX     #HICOLR         ;HIGH SCORE TO DATE COLORS
         JSR     VDCOLOR
         JSR     HIGH            ;DISPLAY HIGH SCORE TO DATE
         JSR     DCREDIT         ;DISPLAY NUMBER OF CREDITS IN GAME
 .10S    PCNAP   1
         INC     RAMCOL+2        ;CONTINUALLY CHANGE 1 COLOR WORD
-        LDD     PRAM,U
+        LDD     ProcessRam,U
         BEQ     .20S
         ADDD    #-1
-        STD     PRAM,U
+        STD     ProcessRam,U
         BRA     .10S
 ;*
 .20S    JSR     READEM
         SUBD    #$0201
         BNE     .30S
         LDA     #60
-        STA     PRAM+3,U
+        STA     ProcessRam+3,U
         BRA     .10S
 ;*
-.30S    DEC     PRAM+3,U
+.30S    DEC     ProcessRam+3,U
         BGT     .10S
         PROCCR  HSTDBK,$49      ;GO BACK TO H.S.T.D. PAGE MONITOR
         JMP     $D000
@@ -789,7 +789,7 @@ NULL    FCB     @000
 ;*
 MARKET  PCNAP   4               ;EMPTY BUFFERS
         LDA     #30             ;TIME OUT (IN SECONDS) FOR THIS MESSAGE PAGE
-        STA     PRAM,U
+        STA     ProcessRam,U
         JSR     SCCLR           ;CLEAR THE SCREEN
         LDX     VCOLOR1         ;LOAD COLOR TABLE
         JSR     VDCOLOR
@@ -801,7 +801,7 @@ MARKET  PCNAP   4               ;EMPTY BUFFERS
         LDA     #ATX10          ;O.K. TO PLAY TWO PLAYERS
 .10S    JSR     TEXT
 .20S    PCNAP   60
-        DEC     PRAM,U          ;WATCH FOR TIME OUT
+        DEC     ProcessRam,U          ;WATCH FOR TIME OUT
         BNE     .20S
         JMP     HSTD
 ;*
@@ -839,7 +839,7 @@ GSTART  PKILL   $48,$FF         ;STOP COPIES OF ITSELF
         PKILL   $00,$00         ;STOP ALL OTHER ATTRACT MODE PROCESSES
         PROCCR  MARKET,$30
 
-.41S            LDB $C804
+.41S            LDB PIA_InputA
         ANDB #48
         BEQ .4S
         LDX     #COINSL         ;INFINITE FREE PLAY??
@@ -1065,12 +1065,12 @@ NOPLY2  PROCCR  PLYCOL,$20      ;CREATE PLAYERS COLISION DETECT ROUTINE
      ENDIF
         SECCR   ScoreDisplay,$21      ;PLAYER 1'S SCORE UPDATE
         LDD     #SCRPL1
-        STD     PRAM,Y
+        STD     ProcessRam,Y
         LDA     NumberOfPlayers          ;2 PLAYER GAME?
         BEQ     NOSPL2          ; BR=NO
         SECCR   ScoreDisplay,$22      ;PLAYER 2'S SCORE UPDATE
         LDD     #SCRPL2
-        STD     PRAM,Y
+        STD     ProcessRam,Y
 NOSPL2  EQU     *
         LDA     GOVER           ;GAME SIMULATION?
         LBGT    SIM2A           ; BR=YES
@@ -1087,14 +1087,14 @@ ZapTriggerSkipped           PROCCR      THORSE,$6F
 ;*
         LDA     #$FF            ;SECONDARY PROCESS
         STA     PID,U
-LEDGE   CLR     PRAM,U          ;START IMAGE TO REFRESH(IF ANY)
-        CLR     PRAM+2,U        ;START CLIFF BIT
+LEDGE   CLR     ProcessRam,U          ;START IMAGE TO REFRESH(IF ANY)
+        CLR     ProcessRam+2,U        ;START CLIFF BIT
         CLR     BCKRFS          ;NOTHING TO REFRESH IN THE BEGINNING
 NOBCKR  PCNAP   2
         LDA     BCKRFS          ;ANY BACKGROUND TO REFRESH?
         BEQ     NOBCKR
 ;*
-        LDD     PRAM+1,U        ;GET CLIFF OFFSET (REG.A), & CLIFF BIT REG.B
+        LDD     ProcessRam+1,U        ;GET CLIFF OFFSET (REG.A), & CLIFF BIT REG.B
 BCKNBT  ADDA    #2              ;NEXT CLIFF
         ASLB
         BNE     BCKN0
@@ -1102,13 +1102,13 @@ BCKNBT  ADDA    #2              ;NEXT CLIFF
         CLRA
 BCKN0   BITB    BCKRFS          ;THIS CLIFF BIT TO REFRESH??
         BEQ     BCKNBT          ; BR=NO
-        STD     PRAM+1,U        ;SAVE NEW CLIFF BIT & OFFSET BEING REFRESHED
+        STD     ProcessRam+1,U        ;SAVE NEW CLIFF BIT & OFFSET BEING REFRESHED
         EORB    BCKRFS
         STB     BCKRFS          ;TURN THIS CLIFFS REFRESH BIT OFF
-        LDY     [PRAM,U]        ;GET CLIFF ADDRESS
+        LDY     [ProcessRam,U]        ;GET CLIFF ADDRESS
         LEAY    2+6-2,Y         ;POINT PAST COLISION DETECT & FULL OBJ SIZE
         BSR     BCKYUP          ;WRITE THIS OBJECT
-        LDB     PRAM+2,U        ;GET REFRESHEING BIT
+        LDB     ProcessRam+2,U        ;GET REFRESHEING BIT
         BPL     NOBCKR          ;BR=NOT REFRESHING CLIFF5 (THE BIG ONE)
         PCNAP   1
         LDY     CLIF5           ;GET CLIFF5 LEFT SIDED ADDRESS
@@ -1754,22 +1754,22 @@ LVVIN   ORCC    #$04            ;.EQ. IN RANGE
 LVVOUT  ANDCC   #~$04           ;.NE. OUT OF RANGE (FOR ONE REASON OR ANOTHER)  ;;Fixme was: ANDCC  #!N$04
         RTS
      
-                        IF DEBUG = 0                                    ;;Fixme was: IFE DEBUG
 ;* ********************************************************************
 ;*
 ;*      JZAP
 ;*
 ;* ********************************************************************
-JZAP                    LDX     JZAPST
+                        IF DEBUG = 0                                    ;;Fixme was: IFE DEBUG
+JZAP                    LDX             JZAPST
                         CLRA
-.1S                     ADDA    ,-X
-                        CMPX    #$D000
-                        BNE     .1S
-                        EORA    #$A1            ;JZAPPER DATA
-                        BEQ     .2S
+.1S                     ADDA            ,-X
+                        CMPX            #$D000
+                        BNE             .1S
+                        EORA            #$A1                            ; JZAPPER DATA
+                        BEQ             ZapComplete
 
-ZapPrimaryAction       INC     LXPOS2+1
-.2S                     RTS
+ZapPrimaryAction        INC             LXPOS2+1
+ZapComplete             RTS
                         ENDIF
 
 ;* ********************************************************************
@@ -1813,13 +1813,19 @@ WLAVAT  LDA     PFRAME,U
         JSR     VWR1CLS
 WLADMA  JSR     WRHOR2
         JMP     CLIPER          ;CLIP THE IMAGE (CLOSE TO THE BOTTOM)
+
+;* ********************************************************************
 ;*
-;*      THORSE
+;* THORSE
 ;*
-THORSE  PCNAP   30
-        LDD     #$2502          ;LEFT1,FLAP1,CREDIT1,RIGHT2
-        BSR     .80S
-        BNE     THORSE
+;* Thread for horse riding?
+;*
+;* ********************************************************************
+THORSE          PCNAP       30                                          ; nap, 30 frames?  (I'm not sure the units for "30" yet)
+                LDD         #$2502                                      ; CREDIT1 ($2000), FLAP1 ($0400), LEFT1 ($0100), RIGHT2 ($0002)
+                BSR         .80S                                        ; Branch to .80S subroutine (BSR = JSR with a relative address)
+                BNE         THORSE                                      ; If the zero flag in CC is not set, branch to THORSE
+
 .10S    BSR     .80S
         BEQ     .10S
         PCNAP   15              ;1/4 SECOND TILL NEXT SWITCH CLOSURES
@@ -1871,38 +1877,59 @@ THORSE  PCNAP   30
       ELSE
         JMP     [$FFFE]
       ENDIF
+
+;* ********************************************************************
 ;*
-.80S    STD     PRAM,U
-        LDD     ,S++
-        STD     PRAM+2,U
-        PCNAP   1
-        BSR     READEM
-        TFR     D,X
-        LDD     PRAM,U
-        CMPX    PRAM,U
-        JMP     [PRAM+2,U]
+;* Inputs:
+;*      * D is preserved -- and used to compare to results from READEM
 ;*
-READEM  LDA     #$08
-        ORA     WCPIAB
-        STA     WCPIAB
-        LDA     WPIAA
-        ANDA    #$37
-        LDB     #~$08                                                           ;;Fixme was: LDB  #!N$08
-        ANDB    WCPIAB
-        STB     WCPIAB
-        LDB     WPIAA
-        ANDB    #$07
-        RTS
+;* Outputs:
+;*      * CC is only result, from CMPX
 ;*
-     IF DEBUG = 0                                                               ;;Fixme was: IFE DEBUG
+;* ********************************************************************
+.80S            STD         ProcessRam,U                                ; store D at U+ProcessRam
+                LDD         ,S++                                        ; pop 2 bytes from stack into D (Return Address)
+                STD         ProcessRam+2,U                              ; store return address at U+ProcessRam+2
+                PCNAP       1                                           ; nap, 1 frame (or 1/60th of a second)  ['frame' is a guess, not sure of the units]
+                BSR         READEM                                      ; get inputs -- I suspect D holds the state from READEM
+                TFR         D,X                                         ; Transfer Register to Register: LSB of D (16 bits) to X (16 bits)
+                LDD         ProcessRam,U                                ; Load the "key" from the caller back into D
+                CMPX        ProcessRam,U                                ; Compare to the results of READEM.
+                JMP         [ProcessRam+2,U]                            ; return to caller.
+
+;* ********************************************************************
+;*
+;* Inputs:
+;*     * None
+;*
+;* Outputs:
+;*     * A holds the P1 and Start bits
+;*     * B holds the P2 bits
+;*     * D (A:B) holds all bits
+;*
+;* ********************************************************************
+READEM          LDA         #$08                                        ; I think this is indicating read-player-1.
+                ORA         PIA_ControlB                                      ; This is Control Register B of the PIA. (PIA_ControlB)
+                STA         PIA_ControlB                                      ; Leave all other bits alone, but set the read bit.
+                LDA         PIA_InputA                                       ; PIA_InputA - PIA Control Register A
+                ANDA        #$37                                        ; Mask: P1-Left, P1-Right, P1-Flap, P1-Start and P2-Start
+                LDB         #~$08                                       ; I think this is indicating read-player-2.
+                ANDB        PIA_ControlB
+                STB         PIA_ControlB
+                LDB         PIA_InputA
+                ANDB        #$07                                        ; Mask: P2-Left, P2-Right, P2-Flap.
+                RTS 
+
+        IF DEBUG = 0                                                    
 JZAPST  FDB     $9000
-     ENDIF
-;*
+        ENDIF
+
+;* ********************************************************************
 ;*
 ;*      Centrial Intelligence Agency
 ;*      INITILIZATION
 ;*
-;*
+;* ********************************************************************
 CIA     CLR     WAVBCD          ;WAVE STARTS AT ZERO
         LDD     #WaveSetup_NoOp
         STD     PWPREV,U        ;NO PREVIOUS WAVE TO COMPLETE
@@ -5264,24 +5291,33 @@ OSTXDN  LDA     #2
         RORB
         STD     PVELY,X
 .2S     RTS
+
+;* ********************************************************************
 ;*
-      IF DEBUG = 0                                                              ;;Fixme was: IFE DEBUG
-LZAP    LDX     LZAP1
-        LDD     #34
-.1S     ADDA    ,X+
-        DECB
-        BNE     .1S
-        CMPA    #$32            ;LZAPPER DATA
-        BEQ     .2S
-ZapNeutralizeLzap
-        LDX     [PFREE]
-        INC     1,X
-.2S     RTS
-      ENDIF
+;*      LZAP
+;*
+;* ********************************************************************
+                        IF DEBUG = 0                                    ;;Fixme was: IFE DEBUG
+LZAP                    LDX             LZAP1
+                        LDD             #34
+.1S                     ADDA            ,X+
+                        DECB
+                        BNE             .1S
+                        CMPA            #$32                            ;LZAPPER DATA
+                        BEQ             LZapComplete
+
+ZapNeutralizeLzap       LDX             [PFREE]
+                        INC             1,X
+LZapComplete            RTS
+                        ENDIF
+
+;* ********************************************************************
 ;*
 ;*      COLIDE PTERODACTYL & BIRD
 ;*              REG.U = PTERODACTYL
 ;*              REG.X = BIRD
+;*
+;* ********************************************************************
 PTEBRD  CLRA                    ;DETERMINE WHO IS ON TOP
         LDB     PCOLY1,X
         SUBB    PCOLY1,U
@@ -6355,10 +6391,11 @@ ENDAD1  EQU     *       ;CURRENT END ADDRESS
 ;*
 ;*      PATCHES TO PREVENT PLAYER FROM PTERODACTYL HUNTING
 ;*
-        ORG     $D760   ;MODULE "ATT.SRC" ENDED AT $D6EF ON 10/29/82
+        ORG     PatchesStartAddr    ;MODULE "ATT.SRC" ENDED AT $D6EF ON 10/29/82
 PATCHS  EQU     *       ;START ADDRESS OF PATCHES
         
         ; EJP -- Cannot understand why precisely what this is doing.
+        ;
         ; Okay, this is clearly simply checking that the code doesn't overwrite the end of ATT.SRC, 
         ; however, we have a hard-coded ORG here, so it's obvious.
         ;
@@ -7350,19 +7387,19 @@ SKIDR   LDA     PFRAME,U
 ;*
 ;*      PLAYER 1 -READ JOYSTICK
 ;*
-P1JOY   LDA     WCPIAB          ;SELECT HALF OF MUX
+P1JOY   LDA     PIA_ControlB          ;SELECT HALF OF MUX
         ORA     #$08
         BRA     P2SAM           ;SAME AS PLAYER 2 JOYSTICK
 ;*
 ;*      PLAYER 2-READ JOYSTICK
 ;*
-P2JOY   LDA     WCPIAB
+P2JOY   LDA     PIA_ControlB
         ANDA    #$F7
-P2SAM   STA     WCPIAB
+P2SAM   STA     PIA_ControlB
 ;
 ; If Pause Mod is enabled, this will be overridden by a jmp to our patch.
 ;
-EJP_PauseModHook    LDA     WPIAA           ;READ JOYSTICK
+EJP_PauseModHook    LDA     PIA_InputA           ;READ JOYSTICK
 ;
         CLRB                    ;ASSUME JUMP BUTTON NOT PRESSED
         BITA    #$04            ;IS JUMP BUTTON PRESSED?
@@ -7554,24 +7591,24 @@ SCRPL2  FDB     SPLY2+4                 ;SCORE CHANGED FLAG
         FCB     0,0,-1                  ;END OF SCORE INFORMATION
 ;*
 ;*      BCD DISPLAY OF SCORE (PLAYER 1 & 2)
-;*       INPUT: PRAM,U - ADDRESS OF SCORE TABLE
+;*       INPUT: ProcessRam,U - ADDRESS OF SCORE TABLE
 ;*
-ScoreDisplay  LDX     PRAM,U          ;PUT UP SCORE ZERO
+ScoreDisplay  LDX     ProcessRam,U          ;PUT UP SCORE ZERO
         LEAX    SCRINT-SCRPL1,X
 ;*
-.100S   STX     PRAM+2,U        ;REMEMBER DIGIT TO PUT UP
-        LDY     PRAM,U          ;GET DMA CONTROL & COLOR NIBBLE
+.100S   STX     ProcessRam+2,U        ;REMEMBER DIGIT TO PUT UP
+        LDY     ProcessRam,U          ;GET DMA CONTROL & COLOR NIBBLE
         LDU     2,Y
         LDY     2,X             ;GET DESTINATION ADDRESS
         BMI     .1S             ; BR=END OF LIST
         LDB     [,X]            ;GET SCORE BYTE
         JSR     [4,X]           ;CALL OUTPUT ROUTINE & WAIT
-        LDX     PRAM+2,U        ;NEXT DIGIT
+        LDX     ProcessRam+2,U        ;NEXT DIGIT
         LEAX    6,X
         BRA     .100S
 ;*
 .1S     PCNAP   2
-        LDX     PRAM,U          ;SCORE CHANGED?
+        LDX     ProcessRam,U          ;SCORE CHANGED?
         LDB     [,X]
         BEQ     .1S             ; BR=NO
         CLR     [,X]            ;RESET CHANGED SCORE FLAG
@@ -7991,15 +8028,15 @@ LNDXS3  FCB     %10001001,%10001001,%10001001,%10001001 ;CRT PIXEL $00
         FCB     %10001001,%10001001,%10001001,%10001001
 LNDXS2  EQU     *
      IF DEBUG = 0                                                               ;;Fixme was: IFE DEBUG
-KZAP    CLR     PRAM,U
-        CLR     PRAM+1,U
-        CLR     PRAM+2,U
+KZAP    CLR     ProcessRam,U
+        CLR     ProcessRam+1,U
+        CLR     ProcessRam+2,U
 .1S     PCNAP   1
-        LDX     PRAM,U
+        LDX     ProcessRam,U
         LDA     ,X++
-        ADDA    PRAM+2,U
-        STA     PRAM+2,U
-        STX     PRAM,U
+        ADDA    ProcessRam+2,U
+        STA     ProcessRam+2,U
+        STX     ProcessRam,U
         BPL     .1S
         CMPA    KZAP1
         BEQ     KZAP

@@ -117,26 +117,26 @@ DoStuff
 
 PauseScan
         PSHS    D                                                                                            ; push D onto the stack.   I'm not sure what D is.
-                LDA $C804
+                LDA PIA_InputA
         ANDA #32
         BEQ PauseExit
         ORCC    #$10            ;set Interrupt mask                                                                 ; sets interrupt mask.   I'm not sure why yet.
         JSR     PauseDelay      ;go to delay subroutine
 
 .1S     JSR     .4S             ;feed watchdog
-                LDA $C804
+                LDA PIA_InputA
         ANDA #32
         BNE .1S
         JSR     PauseSTART      ;yes? draw "PAUSED" text
 
 .3S     JSR     .4S             ;feed watchdog
-                LDA $C804
+                LDA PIA_InputA
         ANDA #32
         BEQ .3S
         JSR     PauseDelay
 
 .2S     JSR     .4S
-                LDA $C804
+                LDA PIA_InputA
         ANDA #32
         BNE .2S
         JSR     PauseCLR        ;player wants to resume play, let's go clear the "PAUSED" text
@@ -157,7 +157,7 @@ PauseDelay
 
 PauseExit PULS    D             ;grab D from stack                                                                  ; pop D from the stack
         ANDCC   #$EF                                                                                                ; Clears the interrupt mask (CC 0x10)
-        LDA     WPIAA           ;READ JOYSTICK (restore trashed instruction from $DDC1)                             ; ??
+        LDA     PIA_InputA           ;READ JOYSTICK (restore trashed instruction from $DDC1)                             ; ??
         JMP     $DDC4           ;go back to Game Logic                                                              ; ??
         FDB     $00FA           ;$FA = CHECKSUM FIX
 

@@ -1,4 +1,4 @@
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 1 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 1 - 8/10/2025 8:16:21
 
 
     1/   0 :                            
@@ -61,10 +61,10 @@
    58/   5 :                            ;*
    59/   5 :                            ;*TEMPORARIES
    60/   5 :                            ;*
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 2 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 2 - 8/10/2025 8:16:21
 
 
-   61/   5 : =$5                        TMPRAM  EQU     *       ;TEMPORARY RAM
+   61/   5 : =$5                        TemporaryProcessRam  EQU     *       ;TEMPORARY RAM
    62/   5 :                            TEMPX   RMB     2       ;X TEMPS
    63/   7 :                            XPLAY   RMB     2
    64/   9 :                            XPTR    RMB     2
@@ -124,7 +124,7 @@
   118/   D :                                    ORG     LOCRAM
   119/   D :                            FREQ1   RMB     1       ;FREQUENCY CONSTANT 1
   120/   E :                            FREQ2   RMB     1       ;FREQUENCY CONSTANT 2
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 3 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 3 - 8/10/2025 8:16:21
 
 
   121/   F :                            FREQ3   RMB     1       ;FREQUENCY CONSTANT 3
@@ -187,7 +187,7 @@
   178/   E :                            NAMP    RMB     1
   179/   F :                            CYCNT   RMB     1
   180/  10 :                            NFRQ1   RMB     2
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 4 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 4 - 8/10/2025 8:16:21
 
 
   181/  12 :                            NFFLG   RMB     1
@@ -250,7 +250,7 @@
   238/F016 : 86 3C                              LDAA    #$3C    ;CA2 SET INIT HIGH, NO IRQS
   239/F018 : A7 01                              STAA    1,X     ;PROGRAM A SIDE
   240/F01A : 97 00                              STAA    HI      ;START RANDOM GENERATOR
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 5 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 5 - 8/10/2025 8:16:21
 
 
   241/F01C : 0E                                 CLI             ;CLEAR INTERRUPTS
@@ -313,7 +313,7 @@
   298/F080 : DE 02                              LDX     XDECAY  ;GET DECAY POINTER
   299/F082 : AD 00                              JSR     0,X     ;OUTPUT NOISE
   300/F084 : 20 A2                              BRA     PLAY1   ;DO SOME MORE
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 6 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 6 - 8/10/2025 8:16:21
 
 
   301/F086 : CE 00 0D                   PLAY7   LDX     #FREQ1  ;INDEX TO SET 1
@@ -376,7 +376,7 @@
   358/F0E2 : 86 F1                              LDAA    #SINTBL/$100
   359/F0E4 : 97 0E                              STAA    TABLE
   360/F0E6 : 86 80                      WHIST0  LDAA    #$80
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 7 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 7 - 8/10/2025 8:16:21
 
 
   361/F0E8 : 97 0B                              STAA    TEMPA
@@ -439,7 +439,7 @@
   418/F180 : 7F 04 00                           CLR     SOUND
   419/F183 : 96 0D                              LDAA    PERIOD
   420/F185 : CE 00 05                   LP2     LDX     #5      ;DELAY
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 8 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 8 - 8/10/2025 8:16:21
 
 
   421/F188 : 09                         LP22    DEX
@@ -502,7 +502,7 @@
   476/F1EE :                            ;*
   477/F1EE : 96 04                      ECHO    LDAA    AMP0
   478/F1F0 : 80 08                              SUBA    #$08
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 9 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 9 - 8/10/2025 8:16:21
 
 
   479/F1F2 : 2A 03                              BPL     ECHO1
@@ -565,7 +565,7 @@
   536/F24E : 01                                 NOP             ;SYNC, 2 CYCLES
   537/F24F : 20 15                              BRA     SING5
   538/F251 : 08                         SING4   INX             ;-I
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 10 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 10 - 8/10/2025 8:16:21
 
 
   539/F252 : 09                                 DEX             ;-I--- SYNC, 10 CYCLES
@@ -628,7 +628,7 @@
       F357 : 00                        
   583/F358 : 48 00 00 00 05 FF 00 00            FDB     $4800,$0000,$05FF,$0000
   584/F360 : 02 80 00 30 0A 7F 00 7F 02 VEC017  FDB     $0280,$0030,$0A7F,$007F,$0280
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 11 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 11 - 8/10/2025 8:16:21
 
 
       F369 : 80                        
@@ -691,7 +691,7 @@
   640/F401 : 9B 0F                              ADDA    LODT
   641/F403 : 97 16                              STAA    LOCNT
   642/F405 : 96 17                              LDAA    HICNT
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 12 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 12 - 8/10/2025 8:16:21
 
 
   643/F407 : 9B 10                              ADDA    HIDT
@@ -754,7 +754,7 @@
   700/F497 : 86 30                      GP1     LDAA    #$30
   701/F499 : 97 2A                              STAA    NFRQ2
   702/F49B : 8D 2F                              BSR     NOIN
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 13 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 13 - 8/10/2025 8:16:21
 
 
   703/F49D : 86 02                              LDAA    #2
@@ -817,7 +817,7 @@
   760/F4ED : 27 DF                              BEQ     NO1     ;IF NO SWEEP GO DELAY
   761/F4EF : 2B 05                              BMI     NO3     ;SWEEP DOWN
   762/F4F1 : 7C 00 2A                           INC     NFRQ2
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 14 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 14 - 8/10/2025 8:16:21
 
 
   763/F4F4 : 20 D8                              BRA     NO1
@@ -880,7 +880,7 @@
   820/F54F :                            ;*
   821/F54F : 39                         NW3     RTS
   822/F550 :                            ;*
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 15 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 15 - 8/10/2025 8:16:21
 
 
   823/F550 :                            ;* NOISE WITH WHISTLE MAIN LOOP
@@ -943,7 +943,7 @@
   880/F5C0 : 97 24                              STAA    MINWIS
   881/F5C2 : 86 05                              LDAA    #5
   882/F5C4 : BD F7 FA                           JSR     ADDX
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 16 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 16 - 8/10/2025 8:16:21
 
 
   883/F5C7 : DF 1E                              STX     PTRHI
@@ -1006,7 +1006,7 @@
   940/F61A : 96 13                      LITE2   LDAA    LFREQ   ;COUNT FREQ
   941/F61C : 4A                         LITE3   DECA
   942/F61D : 26 FD                              BNE     LITE3
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 17 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 17 - 8/10/2025 8:16:21
 
 
   943/F61F : 5A                                 DECB            ;COUNT CYCLES
@@ -1069,7 +1069,7 @@
  1000/F672 : 26 EF                              BNE     TRANS1
  1001/F674 : 32                                 PULA
  1002/F675 : 39                                 RTS
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 18 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 18 - 8/10/2025 8:16:21
 
 
  1003/F676 :                            ;*
@@ -1132,7 +1132,7 @@
  1060/F6D9 : DF 17                              STX     FRQEND
  1061/F6DB : 39                                 RTS
  1062/F6DC :                            ;*
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 19 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 19 - 8/10/2025 8:16:21
 
 
  1063/F6DC :                            ;*GWAVE ROUTINE
@@ -1195,7 +1195,7 @@
  1120/F73E : AB 00                      GW1     ADDA    ,X      ;DEC
  1121/F740 : 27 02                              BEQ     GW2     ;OVERFLOW ON EQ
  1122/F742 : 25 05                              BCS     GW2A    ;OVERFLOW IF CARRY CLEAR
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 20 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 20 - 8/10/2025 8:16:21
 
 
  1123/F744 : 5D                         GW2     TSTB            ;FOUND START YET?
@@ -1258,7 +1258,7 @@
  1180/F79F : 26 FA                              BNE     WVDLP1
  1181/F7A1 : A7 00                              STAA    ,X
  1182/F7A3 : 08                                 INX
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 21 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 21 - 8/10/2025 8:16:21
 
 
  1183/F7A4 : 9C 19                              CPX     WVEND   ;END OF WAVE?
@@ -1321,7 +1321,7 @@
  1240/F807 : 39                                 RTS
  1241/F808 :                            ;*
  1242/F808 :                            ;* DIAGNOSTIC PROCESSING HERE
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 22 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 22 - 8/10/2025 8:16:21
 
 
  1243/F808 :                            ;*
@@ -1384,7 +1384,7 @@
  1297/F8E9 : 76 EA 81 86 4E 9C 32 63            FCB     118,234,129,134,78,156,50,99
  1298/F8F1 : 10 00 F4 00 E8 00 DC 00 E2 MW1     FCB     16,0,$F4,0,$E8,0,$DC,0,$E2
  1299/F8FA : 00 DC 00 E8 00 F4 00 00            FCB     0,$DC,0,$E8,0,$F4,0,0
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 23 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 23 - 8/10/2025 8:16:21
 
 
  1300/F902 : 24                         SIN3.SR FCB     36                                      ;WAVE C
@@ -1447,7 +1447,7 @@
       F9F2 : B0 C0                     
  1351/F9F4 :                            ;*SWEEP PATTERN
  1352/F9F4 : =$F9F4                     SWPAT   EQU     *
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 24 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 24 - 8/10/2025 8:16:21
 
 
  1353/F9F4 :                            ;*BIGBEN SOUNDS
@@ -1510,7 +1510,7 @@
  1401/  25 :                            
  1402/  25 : =$25                       PWVCNT  EQU     *       ;#OF WAVES TO PLAY BEFORE NEXT PITCH CMD (P PROGRAM)
  1403/  25 :                            PSTK    RMB     2       ;TOP OF PITCH RETURN/COUNT STACK
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 25 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 25 - 8/10/2025 8:16:21
 
 
  1404/  27 :                            PWAVPT  RMB     2       ;PTR TO CURRENT SAMPLE BEING PLAYED
@@ -1573,7 +1573,7 @@
  1461/FAB4 : DE 27                              LDX     PWAVPT
  1462/FAB6 : E6 00                              LDAB    ,X
  1463/FAB8 : F7 04 00                           STAB    SOUND
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 26 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 26 - 8/10/2025 8:16:21
 
 
  1464/FABB :                            
@@ -1636,7 +1636,7 @@
  1521/FB11 : D7 2F                              STAB    FCNT    ;13
  1522/FB13 :                            
  1523/FB13 : D6 23                              LDAB    TMPPER
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 27 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 27 - 8/10/2025 8:16:21
 
 
  1524/FB15 : C0 05                              SUBB    #5
@@ -1699,7 +1699,7 @@
  1581/FB64 :                            
  1582/FB64 :                            ;* LDP N  IS  SMPPER := N,  ADP N  IS SMPPER := SMPPER + N
  1583/FB64 :                            
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 28 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 28 - 8/10/2025 8:16:21
 
 
  1584/FB64 : 96 29                      LDPR    LDAA    PCMD            ;BIT 0 = 1 FOR LOAD
@@ -1762,7 +1762,7 @@
  1641/FBB2 : 20 55                              BRA     PTORE1
  1642/FBB4 :                            
  1643/FBB4 : EE 00                      PRET    LDX     ,X
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 29 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 29 - 8/10/2025 8:16:21
 
 
  1644/FBB6 : 08                                 INX
@@ -1825,7 +1825,7 @@
  1701/FC08 : 08                                 INX                     ;SYNC W/NEXT RTN
  1702/FC09 : 08                         PTORE1  INX
  1703/FC0A : 08                                 INX
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 30 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 30 - 8/10/2025 8:16:21
 
 
  1704/FC0B : 5F                                 CLRB
@@ -1888,7 +1888,7 @@
  1759/FC65 : 80 03                              SUBA    #3
  1760/FC67 : 97 30                              STAA    FSTK+1
  1761/FC69 : CE FC 42                           LDX     #FRTURN         ;ELSE RETURN
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 31 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 31 - 8/10/2025 8:16:21
 
 
  1762/FC6C : DF 2D                              STX     FVECT+1 ;38
@@ -1951,7 +1951,7 @@
  1819/FCB9 :                            
  1820/FCB9 : 97 2F                              STAA    FCNT            ;NEGATIVE CMD IS NEG OF WAVE DELAY
  1821/FCBB : A6 00                              LDAA    ,X
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 32 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 32 - 8/10/2025 8:16:21
 
 
  1822/FCBD : 39                                 RTS             ;50
@@ -2014,7 +2014,7 @@
  1879/FD15 : CE FC A9                   FCMDNX  LDX     #NXTFCM ;40
  1880/FD18 : DF 2D                              STX     FVECT+1
  1881/FD1A : 39                                 RTS
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 33 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 33 - 8/10/2025 8:16:21
 
 
  1882/FD1B :                            
@@ -2077,7 +2077,7 @@
  1939/FD6A : E6 00                              LDAB    ,X
  1940/FD6C : 94 37                              ANDA    FNHI            ;ADD/SUBTRACT HAMP FROM SAMPLE ON
  1941/FD6E : 26 09                              BNE     .2S     ;29     ;SIGN OF HARMONIC.
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 34 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 34 - 8/10/2025 8:16:21
 
 
  1942/FD70 : FB 00 35                           FCB     -5,0,HAMP
@@ -2140,7 +2140,7 @@
  1999/FDCC :                            
  2000/FDCC : D7 35                      ADHRE   STAB    HAMP    ;27
  2001/FDCE : CE FD 2F                           LDX     #ADDINI
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 35 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 35 - 8/10/2025 8:16:21
 
 
  2002/FDD1 : DF 2D                              STX     FVECT+1
@@ -2203,7 +2203,7 @@
  2059/FE26 : 97 35                              STAA    HAMP
  2060/FE28 : CE FD 2F                           LDX     #ADDINI
  2061/FE2B : FF 00 2D                           FCB     -1,0,FVECT+1
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 36 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 36 - 8/10/2025 8:16:21
 
 
  2062/FE2E : 39                                 RTS
@@ -2266,7 +2266,7 @@
  2119/FE88 :                            
  2120/FE88 :                            ;* FILTER TIMING
  2121/FE88 :                            ;* COMMAND      # OF FILTER CALLS TO EXECUTE
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 37 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 37 - 8/10/2025 8:16:21
 
 
  2122/FE88 :                            
@@ -2329,7 +2329,7 @@
  2179/FE88 :                            
  2180/FE88 :                            
  2181/FE88 :                            TO      MACRO   A                                               ;;Fixme was: TO MACRO "A
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 38 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 38 - 8/10/2025 8:16:21
 
 
  2182/FE88 :                            ; LIST
@@ -2392,7 +2392,7 @@
  2239/FE88 :                            NOT     MACRO   N                                               ;;Fixme was: NOT MACRO "N
  2240/FE88 :                            ; LIST
  2241/FE88 :                                    FCB     N               ;NOT    "N                      ;;Fixme was: FCB        "N
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 39 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 39 - 8/10/2025 8:16:21
 
 
  2242/FE88 :                            ; NLIST
@@ -2455,7 +2455,7 @@
  2299/FE88 :                                    FCB     64-H-H          ;DH     "H                      ;;Fixme was: FCB 64-"H-"H
  2300/FE88 :                            ; NLIST
  2301/FE88 :                                    ENDM
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 40 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 40 - 8/10/2025 8:16:21
 
 
  2302/FE88 :                            ;
@@ -2518,7 +2518,7 @@
  2359/FE88 :                            ; NLIST
  2360/FE88 :                                    ENDM
  2361/FE88 :                            
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 41 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 41 - 8/10/2025 8:16:21
 
 
  2362/FE88 :                            
@@ -2581,7 +2581,7 @@
  2419/FE88 :                                    ENDM
  2420/FE88 :                            
  2421/FE88 :                            
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 42 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 42 - 8/10/2025 8:16:21
 
 
  2422/FE88 :                            ; LIST
@@ -2644,7 +2644,7 @@
  2479/FE9A :                            ;* WAVE PROGRAMS
  2480/FE9A :                            
  2481/FE9A :                            ; NLIST
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 43 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 43 - 8/10/2025 8:16:21
 
 
  2482/FE9A :                            
@@ -2707,7 +2707,7 @@
  2484/FE9A : =$2                        ZB_2   SET     (1)+(1)+ZQ3                                     ;;Fixme was: ZB"I SET "1+"1+ZQ3 (parentheses allow negative values!)
  2484/FE9A : [2484]                             ENDIF
  2484/FE9A :  (MACRO-2)[14]                     LTA 3,5,1                                            ;;Fixme was: LTA 3,"3
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 44 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 44 - 8/10/2025 8:16:21
 
 
  2484/FE9A : =$0                        ZQ3     SET     0
@@ -2770,7 +2770,7 @@
  2484/FE9A : =>FALSE                            IF      1 = 0                                           ;;Fixme was: IFE "1
  2484/FE9A :                            ZQ1     SET     17
  2484/FE9A : =>TRUE                             ELSE
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 45 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 45 - 8/10/2025 8:16:21
 
 
  2484/FE9A : =$FF                       ZQ2     SET     ZQ2|(2^(1-1))                                   ;;Fixme was: ZQ2 SET ZQ2!+(2!^("1-1))
@@ -2833,7 +2833,7 @@
  2488/FEA7 : =$0                        ZB_1    SET     0                                               ;;Fixme was: ZB%1 SET 0
  2488/FEA7 : =$0                        ZB_2    SET     0                                               ;;Fixme was: ZB%2 SET 0
  2488/FEA7 : =$0                        ZB_3    SET     0                                               ;;Fixme was: ZB%3 SET 0
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 46 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 46 - 8/10/2025 8:16:21
 
 
  2488/FEA7 : =$0                        ZB_4    SET     0                                               ;;Fixme was: ZB%4 SET 0
@@ -2896,7 +2896,7 @@
  2488/FEA7 :  (MACRO-2)[38]                     LTA 4,,                                            ;;Fixme was: LTA 4,"4
  2488/FEA7 : =$0                        ZQ3     SET     0
  2488/FEA7 : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 47 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 47 - 8/10/2025 8:16:21
 
 
  2488/FEA7 :                            ZQ3     SET     1
@@ -2959,7 +2959,7 @@
  2488/FEA7 :                                    ELSE
  2488/FEA7 :                            ZQ2     SET     ZQ2|(2^(-1))                                   ;;Fixme was: ZQ2 SET ZQ2!+(2!^("-1))
  2488/FEA7 : [2488]                             ENDIF
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 48 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 48 - 8/10/2025 8:16:21
 
 
  2488/FEA7 :                            ZB_8   SET     ()+()+ZQ3                                     ;;Fixme was: ZB"I SET "+"+ZQ3 (parentheses allow negative values!)
@@ -3022,7 +3022,7 @@
  2490/FEAB : [2490]                             ENDIF
  2490/FEAB :                            ZB_1   SET     ()+()+ZQ3                                     ;;Fixme was: ZB"I SET "+"+ZQ3 (parentheses allow negative values!)
  2490/FEAB : [2490]                             ENDIF
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 49 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 49 - 8/10/2025 8:16:21
 
 
  2490/FEAB :  (MACRO-2)[57]                     LTA 2,,                                            ;;Fixme was: LTA 2,"2
@@ -3085,7 +3085,7 @@
  2490/FEAB : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
  2490/FEAB :                                    IF       = 0                                           ;;Fixme was: IFE "
  2490/FEAB :                            ZQ1     SET     17
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 50 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 50 - 8/10/2025 8:16:21
 
 
  2490/FEAB :                                    ELSE
@@ -3148,7 +3148,7 @@
  2492/FEAF : =$0                        ZB_3    SET     0                                               ;;Fixme was: ZB%3 SET 0
  2492/FEAF : =$0                        ZB_4    SET     0                                               ;;Fixme was: ZB%4 SET 0
  2492/FEAF : =$0                        ZB_5    SET     0                                               ;;Fixme was: ZB%5 SET 0
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 51 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 51 - 8/10/2025 8:16:22
 
 
  2492/FEAF : =$0                        ZB_6    SET     0                                               ;;Fixme was: ZB%6 SET 0
@@ -3211,7 +3211,7 @@
  2492/FEAF : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
  2492/FEAF :                            ZQ3     SET     1
  2492/FEAF : [2492]                             ENDIF
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 52 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 52 - 8/10/2025 8:16:22
 
 
  2492/FEAF : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
@@ -3274,7 +3274,7 @@
  2492/FEAF : [2492]                             ENDIF
  2492/FEAF :                            ZB_8   SET     ()+()+ZQ3                                     ;;Fixme was: ZB"I SET "+"+ZQ3 (parentheses allow negative values!)
  2492/FEAF : [2492]                             ENDIF
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 53 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 53 - 8/10/2025 8:16:22
 
 
  2492/FEAF :                            ; LIST
@@ -3337,7 +3337,7 @@
  2494/FEB4 : [2494]                             ENDIF
  2494/FEB4 :  (MACRO-2)[99]                     LTA 2,,                                            ;;Fixme was: LTA 2,"2
  2494/FEB4 : =$0                        ZQ3     SET     0
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 54 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 54 - 8/10/2025 8:16:22
 
 
  2494/FEB4 : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
@@ -3400,7 +3400,7 @@
  2494/FEB4 :                            ZQ1     SET     17
  2494/FEB4 :                                    ELSE
  2494/FEB4 :                            ZQ2     SET     ZQ2|(2^(-1))                                   ;;Fixme was: ZQ2 SET ZQ2!+(2!^("-1))
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 55 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 55 - 8/10/2025 8:16:22
 
 
  2494/FEB4 : [2494]                             ENDIF
@@ -3463,7 +3463,7 @@
  2496/FEB9 : =$0                        ZB_5    SET     0                                               ;;Fixme was: ZB%5 SET 0
  2496/FEB9 : =$0                        ZB_6    SET     0                                               ;;Fixme was: ZB%6 SET 0
  2496/FEB9 : =$0                        ZB_7    SET     0                                               ;;Fixme was: ZB%7 SET 0
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 56 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 56 - 8/10/2025 8:16:22
 
 
  2496/FEB9 : =$0                        ZB_8    SET     0                                               ;;Fixme was: ZB%8 SET 0
@@ -3526,7 +3526,7 @@
  2496/FEB9 : [2496]                             ENDIF
  2496/FEB9 : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
  2496/FEB9 :                                    IF       = 0                                           ;;Fixme was: IFE "
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 57 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 57 - 8/10/2025 8:16:22
 
 
  2496/FEB9 :                            ZQ1     SET     17
@@ -3589,7 +3589,7 @@
  2496/FEB9 : [2496]                             ENDIF
  2496/FEB9 :                            ; LIST
  2496/FEB9 : 10 28                              FCB     ZQ1,ZQ2         ;LT <"0>,<"1>,<"2>,<"3>,<"4>,<"5>,<"6>,<"7>,<"8>
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 58 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 58 - 8/10/2025 8:16:22
 
 
  2496/FEBB :                            ; NLIST
@@ -3652,7 +3652,7 @@
  2498/FEBE : =$0                        ZQ3     SET     0
  2498/FEBE : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
  2498/FEBE :                            ZQ3     SET     1
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 59 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 59 - 8/10/2025 8:16:22
 
 
  2498/FEBE : [2498]                             ENDIF
@@ -3715,7 +3715,7 @@
  2498/FEBE :                            ZQ2     SET     ZQ2|(2^(-1))                                   ;;Fixme was: ZQ2 SET ZQ2!+(2!^("-1))
  2498/FEBE : [2498]                             ENDIF
  2498/FEBE :                            ZB_6   SET     ()+()+ZQ3                                     ;;Fixme was: ZB"I SET "+"+ZQ3 (parentheses allow negative values!)
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 60 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 60 - 8/10/2025 8:16:22
 
 
  2498/FEBE : [2498]                             ENDIF
@@ -3778,7 +3778,7 @@
  2500/FEC3 : =$0                        ZB_7    SET     0                                               ;;Fixme was: ZB%7 SET 0
  2500/FEC3 : =$0                        ZB_8    SET     0                                               ;;Fixme was: ZB%8 SET 0
  2500/FEC3 :  (MACRO-2)[160]                    LTA 0,4,0                                            ;;Fixme was: LTA 0,"0
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 61 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 61 - 8/10/2025 8:16:22
 
 
  2500/FEC3 : =$0                        ZQ3     SET     0
@@ -3841,7 +3841,7 @@
  2500/FEC3 :                                    IF       = 0                                           ;;Fixme was: IFE "
  2500/FEC3 :                            ZQ1     SET     17
  2500/FEC3 :                                    ELSE
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 62 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 62 - 8/10/2025 8:16:22
 
 
  2500/FEC3 :                            ZQ2     SET     ZQ2|(2^(-1))                                   ;;Fixme was: ZQ2 SET ZQ2!+(2!^("-1))
@@ -3904,7 +3904,7 @@
  2500/FEC3 : 10 0A                              FCB     ZQ1,ZQ2         ;LT <"0>,<"1>,<"2>,<"3>,<"4>,<"5>,<"6>,<"7>,<"8>
  2500/FEC5 :                            ; NLIST
  2500/FEC5 :  (MACRO-2)[169]                    LT_1                                                    ;;Fixme was: LT"1
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 63 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 63 - 8/10/2025 8:16:22
 
 
  2500/FEC5 :                            ; LIST
@@ -3967,7 +3967,7 @@
  2502/FEC8 :                            ZQ3     SET     1
  2502/FEC8 : [2502]                             ENDIF
  2502/FEC8 : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 64 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 64 - 8/10/2025 8:16:22
 
 
  2502/FEC8 :                                    IF       = 0                                           ;;Fixme was: IFE "
@@ -4030,7 +4030,7 @@
  2502/FEC8 :                            ZB_6   SET     ()+()+ZQ3                                     ;;Fixme was: ZB"I SET "+"+ZQ3 (parentheses allow negative values!)
  2502/FEC8 : [2502]                             ENDIF
  2502/FEC8 :  (MACRO-2)[188]                    LTA 7,,                                            ;;Fixme was: LTA 7,"7
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 65 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 65 - 8/10/2025 8:16:22
 
 
  2502/FEC8 : =$0                        ZQ3     SET     0
@@ -4093,7 +4093,7 @@
  2504/FECD :  (MACRO-2)[202]                    LTA 0,2,0                                            ;;Fixme was: LTA 0,"0
  2504/FECD : =$0                        ZQ3     SET     0
  2504/FECD : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 66 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 66 - 8/10/2025 8:16:22
 
 
  2504/FECD :                            ZQ3     SET     1
@@ -4156,7 +4156,7 @@
  2504/FECD :                                    ELSE
  2504/FECD :                            ZQ2     SET     ZQ2|(2^(-1))                                   ;;Fixme was: ZQ2 SET ZQ2!+(2!^("-1))
  2504/FECD : [2504]                             ENDIF
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 67 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 67 - 8/10/2025 8:16:22
 
 
  2504/FECD :                            ZB_4   SET     ()+()+ZQ3                                     ;;Fixme was: ZB"I SET "+"+ZQ3 (parentheses allow negative values!)
@@ -4219,7 +4219,7 @@
  2504/FECF :  (MACRO-2)[211]                    LT_0                                                    ;;Fixme was: LT"0
  2504/FECF :                            ; LIST
  2504/FECF : 00                                 FCB     ZB_0                                            ;;Fixme was: FCB ZB0
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 68 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 68 - 8/10/2025 8:16:22
 
 
  2504/FED0 :                            ; NLIST
@@ -4282,7 +4282,7 @@
  2506/FED1 : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
  2506/FED1 :                                    IF       = 0                                           ;;Fixme was: IFE "
  2506/FED1 :                            ZQ1     SET     17
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 69 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 69 - 8/10/2025 8:16:22
 
 
  2506/FED1 :                                    ELSE
@@ -4345,7 +4345,7 @@
  2506/FED1 :  (MACRO-2)[230]                    LTA 7,,                                            ;;Fixme was: LTA 7,"7
  2506/FED1 : =$0                        ZQ3     SET     0
  2506/FED1 : =>BLANK                            IFNB                                                   ;;Fixme was: IFNB <">
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 70 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 70 - 8/10/2025 8:16:22
 
 
  2506/FED1 :                            ZQ3     SET     1
@@ -4408,7 +4408,7 @@
  2513/FEDB : (MACRO)[238]                ADP -1
  2513/FEDB :                            ; LIST
  2513/FEDB : 00 FF                              FCB     0,-1             ;ADP    "-1                      ;;Fixme was: FCB 0,"-1
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 71 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 71 - 8/10/2025 8:16:22
 
 
  2513/FEDD :                            ; NLIST
@@ -4471,7 +4471,7 @@
  2527/FEEF :                            ; NLIST
  2528/FEEF : (MACRO)[252]                STOP
  2528/FEEF :                            ; LIST
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 72 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 72 - 8/10/2025 8:16:22
 
 
  2528/FEEF : 80                                 FCB     128             ;STOP
@@ -4534,7 +4534,7 @@
  2542/FEFB : (MACRO)[263]                ADP -2
  2542/FEFB :                            ; LIST
  2542/FEFB : 00 FE                              FCB     0,-2             ;ADP    "-2                      ;;Fixme was: FCB 0,"-2
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 73 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 73 - 8/10/2025 8:16:22
 
 
  2542/FEFD :                            ; NLIST
@@ -4597,7 +4597,7 @@
  2558/FF0C : (MACRO)[277]                WAIT 2
  2558/FF0C :                            ; LIST
  2558/FF0C : FE                                 FCB     -2              ;WAIT   "2                      ;;Fixme was: FCB         -"2
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 74 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 74 - 8/10/2025 8:16:22
 
 
  2558/FF0D :                            ; NLIST
@@ -4660,7 +4660,7 @@
  2572/FF21 : 00 02                              FCB     0,2             ;ADP    "2                      ;;Fixme was: FCB 0,"2
  2572/FF23 :                            ; NLIST
  2573/FF23 : (MACRO)[292]                STOP
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 75 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 75 - 8/10/2025 8:16:22
 
 
  2573/FF23 :                            ; LIST
@@ -4723,7 +4723,7 @@
  2612/FF71 : 8B 5C                              ADDA    #WALSHT&255                                                     ;;Fixme was: ADDA  #WALSHT!.255
  2613/FF73 : C9 FF                              ADCB    #WALSHT/256
  2614/FF75 : D7 0A                              STAB    PCMDPT
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 76 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 76 - 8/10/2025 8:16:22
 
 
  2615/FF77 : 97 0B                              STAA    PCMDPT+1
@@ -4750,7 +4750,7 @@
  2636/FFFC : F8 08                      NMIV    FDB     NMI
  2637/FFFE : F0 01                      RESETV  FDB     SETUP
  2638/10000 :                                   END     ;CKSUM
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 77 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 77 - 8/10/2025 8:16:22
 
 
   Symbol Table (* = unused):
@@ -4785,7 +4785,7 @@
 *CYCLE2 :                        1A C | *CYCLE3 :                        1B C |
  CYCLE4 :                        1C C |  CYCNT :                          F C |
 *CYCNT2 :                        15 C | *CYNEW :                       F9A5 C |
-*DATE :                  "8/2/2025" - |  DECAY :                          D C |
+*DATE :                 "8/10/2025" - |  DECAY :                          D C |
 *DECAY2 :                        17 C |  DECAYZ :                      F0C4 C |
  DELAY :                       F4A2 C | *DELTA1 :                        11 C |
 *DELTA2 :                        12 C | *DELTA3 :                        13 C |
@@ -4813,7 +4813,7 @@
  FHA1 :                        FD05 C | *FHI :                            E C |
  FINDHA :                      FCE8 C |  FINR :                        FC59 C |
 *FLO :                            F C | *FLOATMAX :      1.797693134866E308 - |
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 78 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 78 - 8/10/2025 8:16:22
 
 
 *FMAX :                           D C |  FMSK :                          36 C |
@@ -4876,7 +4876,7 @@
  LFREQ :                         13 C | *LISTON :                         1 - |
  LITE :                        F5F4 C |  LITE0 :                       F605 C |
  LITE1 :                       F607 C |  LITE2 :                       F61A C |
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 79 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 79 - 8/10/2025 8:16:22
 
 
  LITE3 :                       F61C C |  LITEN :                       F5FC C |
@@ -4939,7 +4939,7 @@
  PTOR :                        FC0D C |  PTORE1 :                      FC09 C |
  PTRHI :                         1E C |  PWAVPT :                        27 C |
  PWVCNT :                        25 - |  RANDOM :                         1 - |
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 80 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 80 - 8/10/2025 8:16:22
 
 
 *RCNT2 :                         2B C |  RDECAY :                      F0BC C |
@@ -4970,11 +4970,11 @@
  SVTAB :                       F927 - | *SWIV :                        FFFA C |
  SWPAT :                       F9F4 - |  SWPDT :                         12 C |
  TABLE :                          E C |  TEMPA :                          B C |
- TEMPB :                          C C |  TEMPX :                          5 C |
- THNDR :                       F0C8 C |  THNDR1 :                      F0CB C |
-*TIME :                   "7:22:19" - |  TIMEBOM :                        D C |
-*TIMER :                          1 - |  TMPPER :                        23 C |
-*TMPRAM :                         5 - |  TRANS :                       F662 C |
+ TEMPB :                          C C | *TEMPORARYPROCESSRAM :            5 - |
+ TEMPX :                          5 C |  THNDR :                       F0C8 C |
+ THNDR1 :                      F0CB C | *TIME :                   "8:16:21" - |
+ TIMEBOM :                        D C | *TIMER :                          1 - |
+ TMPPER :                        23 C |  TRANS :                       F662 C |
  TRANS1 :                      F663 C |  TRBO :                        F420 C |
  TRBPAT :                      F9D5 C |  TRICNT :                      F57D C |
  TRIDR :                       F5E6 C |  TRIFRQ :                      F594 C |
@@ -5002,7 +5002,7 @@
 *WAST7 :                       FC82 C | *WAVFRM :                      F28E C |
  WAVSRT :                        10 C |  WCNT :                          1D C |
  WCNT2 :                         21 C |  WFRQ :                          1C C |
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 81 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 81 - 8/10/2025 8:16:22
 
 
  WFRQ2 :                         20 C |  WHIS :                          1B C |
@@ -5030,7 +5030,7 @@
     513 symbols
     126 unused symbols
 
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 82 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 82 - 8/10/2025 8:16:22
 
 
   Defined Macros:
@@ -5055,7 +5055,7 @@ ZT                                    |
 
      31 macros
 
- AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 83 - 8/2/2025 7:22:19
+ AS V1.42 Beta [Bld 288] - Source File VSNDRM4.ASM - Page 83 - 8/10/2025 8:16:22
 
 
   Code Pages:

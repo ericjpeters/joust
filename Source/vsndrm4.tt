@@ -60,7 +60,7 @@ AMP0    RMB     1
 ;*
 ;*TEMPORARIES
 ;*
-TMPRAM  EQU     *       ;TEMPORARY RAM
+TemporaryProcessRam  EQU     *       ;TEMPORARY RAM
 TEMPX   RMB     2       ;X TEMPS
 XPLAY   RMB     2
 XPTR    RMB     2

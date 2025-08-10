@@ -13,7 +13,7 @@
 ;*
 ;*      COLOR PROCESSES WORK SPACE
 ;*
-        ORG     PRAM
+        ORG     ProcessRam
 PCOUNT  RMB     2       ;COUNTER TILL ALL OF NEW COLOR RAM IS DUMPED
 PDUMP   RMB     1       ;COUNTER FOR HOW MANY BYTES ARE LEFT TO YSAVE
 PCOLOR  RMB     2       ;POINTER TO CURRENT COLOR PALET
@@ -122,9 +122,9 @@ DEMO    CLRA
 ;*
 .9S     LDU     PEXEC                                                           ;;Fixme was: 9$
         LDA     #111            ;111 * 10 = 1,110 = 18.5 SEC
-        STA     PRAM,U
+        STA     ProcessRam,U
 .20S    PCNAP   10                                                              ;;Fixme was: 20$
-        DEC     PRAM,U
+        DEC     ProcessRam,U
         BNE     .20S
         PKILL   $00,$40         ;KILL ALL NON-ATTRACT MODE PROCESSES
         LDY     #RAMCOL+1
@@ -190,7 +190,7 @@ FLASH   LDD     #-1             ;INITILA COLOR CHANGE AFTER STRIPE ROUTINE
 ;*
 XLENS   EQU     16
 YLENS   EQU     16
-STRIP   CLR     PRAM+8,U
+STRIP   CLR     ProcessRam+8,U
         LDX     #$10-1
         LDY     #$10
         LDA     #8
@@ -220,9 +220,9 @@ STRIP   CLR     PRAM+8,U
 WRPIXH  INCA
         ANDA    #$0F
         ORA     #$08
-        STX     PRAM,U
-        STY     PRAM+2,U
-        STD     PRAM+4,U
+        STX     ProcessRam,U
+        STY     ProcessRam+2,U
+        STD     ProcessRam+4,U
         LDB     #YLENS
 .10S    BSR     WRANIB                                                          ;;Fixme was: 10$
         LEAY    1,Y
@@ -236,9 +236,9 @@ WRPIXH  INCA
 WRPIXV  INCA
         ANDA    #$0F
         ORA     #$08
-        STX     PRAM,U
-        STY     PRAM+2,U
-        STD     PRAM+4,U
+        STX     ProcessRam,U
+        STY     ProcessRam+2,U
+        STD     ProcessRam+4,U
         LDB     #XLENS
 .10S    BSR     WRANIB                                                          ;;Fixme was: 10$
         LEAX    1,X
@@ -248,16 +248,16 @@ WRPIXV  INCA
         DECB
         BNE     .10S
 WRPRTS  LDD     ,S++
-        STD     PRAM+6,U
-        DEC     PRAM+8,U
+        STD     ProcessRam+6,U
+        DEC     ProcessRam+8,U
         BGT     .10S
         LDA     #3
-        STA     PRAM+8,U
+        STA     ProcessRam+8,U
         PCNAP   1
-.10S    LDD     PRAM+4,U                                                        ;;Fixme was: 10$
-        LDY     PRAM+2,U
-        LDX     PRAM+0,U
-        JMP     [PRAM+6,U]
+.10S    LDD     ProcessRam+4,U                                                        ;;Fixme was: 10$
+        LDY     ProcessRam+2,U
+        LDX     ProcessRam+0,U
+        JMP     [ProcessRam+6,U]
 ;*
 WRANIB  PSHS    D,X,Y
         LDA     #$0             ;READ SCREEN

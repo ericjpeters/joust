@@ -6,16 +6,16 @@ protected void SetInput(Player player)
     {
 #>
     LDA     #~$08
-    ANDA    $C807
-    STA     $C807
+    ANDA    PIA_ControlB
+    STA     PIA_ControlB
 <#+
     }
     else
     {
 #>
     LDA     #$08
-    ORA     $C807
-    STA     $C807
+    ORA     PIA_ControlB
+    STA     PIA_ControlB
 <#+
     }
 }
@@ -27,8 +27,8 @@ protected void BranchOnInput(InputButton button, InputState state, string branch
 
     if((button & InputButton.P1Left) != 0)
     {
-        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C804"))
-            inputLocation = "$C804";
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "PIA_InputA"))
+            inputLocation = "PIA_InputA";
         else
             inputLocation = "ERR";
 
@@ -37,8 +37,8 @@ protected void BranchOnInput(InputButton button, InputState state, string branch
     
     if((button & InputButton.P1Right) != 0)
     {
-        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C804"))
-            inputLocation = "$C804";
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "PIA_InputA"))
+            inputLocation = "PIA_InputA";
         else
             inputLocation = "ERR";
 
@@ -47,8 +47,8 @@ protected void BranchOnInput(InputButton button, InputState state, string branch
     
     if((button & InputButton.P1Flap) != 0)
     {
-        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C804"))
-            inputLocation = "$C804";
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "PIA_InputA"))
+            inputLocation = "PIA_InputA";
         else
             inputLocation = "ERR";
 
@@ -57,8 +57,8 @@ protected void BranchOnInput(InputButton button, InputState state, string branch
     
     if((button & InputButton.P2Start) != 0)
     {
-        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C804"))
-            inputLocation = "$C804";
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "PIA_InputA"))
+            inputLocation = "PIA_InputA";
         else
             inputLocation = "ERR";
 
@@ -67,8 +67,8 @@ protected void BranchOnInput(InputButton button, InputState state, string branch
     
     if((button & InputButton.P1Start) != 0)
     {
-        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C804"))
-            inputLocation = "$C804";
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "PIA_InputA"))
+            inputLocation = "PIA_InputA";
         else
             inputLocation = "ERR";
 
@@ -77,8 +77,8 @@ protected void BranchOnInput(InputButton button, InputState state, string branch
     
     if((button & InputButton.P2Left) != 0)
     {
-        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C806"))
-            inputLocation = "$C806";
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "PIA_InputB"))
+            inputLocation = "PIA_InputB";
         else
             inputLocation = "ERR";
 
@@ -87,8 +87,8 @@ protected void BranchOnInput(InputButton button, InputState state, string branch
     
     if((button & InputButton.P2Right) != 0)
     {
-        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C806"))
-            inputLocation = "$C806";
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "PIA_InputB"))
+            inputLocation = "PIA_InputB";
         else
             inputLocation = "ERR";
 
@@ -97,8 +97,8 @@ protected void BranchOnInput(InputButton button, InputState state, string branch
     
     if((button & InputButton.P2Flap) != 0)
     {
-        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "$C806"))
-            inputLocation = "$C806";
+        if(String.IsNullOrWhiteSpace(inputLocation) || (inputLocation == "PIA_InputB"))
+            inputLocation = "PIA_InputB";
         else
             inputLocation = "ERR";
 

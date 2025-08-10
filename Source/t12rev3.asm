@@ -491,10 +491,10 @@ ROMEND  FCB     0
 ;*
 
 ADVSWS  LDA     #$04    ;MAKE SURE THAT NO ONE INTERRUPTS US                    ;;Fixme was: ADVSW$ (invalid symbol name)
-        STA     $C805
-        STA     $C807
-        STA     $C80D
-        STA     $C80F
+        STA     PIA_ControlA
+        STA     PIA_ControlB
+        STA     PIA01
+        STA     PIA11
         LDA     #$FF
         STA     INDIAG
         JSR     INITCM  ;INITIALIZE COLOR MATRIX
@@ -620,10 +620,10 @@ ADVS90  LDD     ,X++
 ;***    AUTO CYCLE
 ;*
 AUTCYC  LDA     #$3C    ;MAKE SURE THAT NO ONE INTERRUPTS US
-        STA     $C805
-        STA     $C807
-        STA     $C80D
-        STA     $C80F
+        STA     PIA_ControlA
+        STA     PIA_ControlB
+        STA     PIA01
+        STA     PIA11
         LDA     #$3F    ;MAKE LOOK LIKE FRONT DOOR TEST THANX TO MOTOROLA
         TFR     A,CC    ;SET TO AUTOCYCLE NO INTS PLEASE ETC.
         LDA     #$8F    ;FIFTEEN RAM PASSES, IN AUTOCYCLE
@@ -991,12 +991,12 @@ SWTES0  CLR     ,U+
 SWTES2  LDU     #STABP
         BSR     SWSCN0
 SWTES1  LDA     #$34
-        STA     PIA31
+        STA     PIA_ControlB
             LDB   #WatchdogData
     STB   WatchdogTimer
         BSR     SWSCN0  ;SCAN THE COCKTAIL SIDE
         LDA     #$3C
-        STA     PIA31
+        STA     PIA_ControlB
         BSR     SWDISP
         JSR     AVCHK   ;ADVANCE PRESSED?
         BCC     SWT999  ;NOPE.
@@ -1033,7 +1033,7 @@ SWDIS2  LEAU    3,U     ;MOVE TO NEXT ENTRY
         LEAY    2,Y     ;TO NEXT BYTE
         CMPY    #SW3SCI ;PAST TABLE
         BHI     SWDIS9  ;YEP..DONE
-;*      LDA     PIA30    ;COCKTABLE
+;*      LDA     PIA_InputB    ;COCKTABLE
 ;*      BMI     SWDIS4  ;YEP...FULL SCAN
         BRA     SWDIS4  ;YEP...FULL SCAN
         CMPY    #SW3SCN ;NOPE..DONE WITH NORMAL SWITCHES??
@@ -1086,11 +1086,11 @@ SWPRNT  LDB     2,U     ;GET HEIGHT
 SWNOAC  PULS    B,X,PC  ;AND RETURN.
 
 STABP   FDB     PIA00,SW0ST
-        FDB     PIA20,SW2ST
-        FDB     PIA30,SW3ST
+        FDB     PIA_InputA,SW2ST
+        FDB     PIA_InputB,SW3ST
         FDB     0
-        FDB     PIA20,SW2STI
-        FDB     PIA30,SW3STI
+        FDB     PIA_InputA,SW2STI
+        FDB     PIA_InputB,SW3STI
         FDB     0
 
 SPHTAB  FCB     Messages_StartOfSwitchNames,$FF,SWMH         ;AUTO UP
@@ -1498,18 +1498,18 @@ CURSOR  LDY     #$1620  ;FIRST CURSOR POSITION
         JSR     OUTC35  ;WRITE THE 3X5 CURSOR OUT
 .1S         LDA   #WatchdogData
     STA   WatchdogTimer
-        LDA     PIA20    ;CHECK THE SWITCHES
+        LDA     PIA_InputA    ;CHECK THE SWITCHES
         ANDA    #$03    ;WE ONLY WANT BITS 0&1 (THIS IS FOR JOUST)
         BEQ     .3S     ;BRA= NO
         BSR     CSWIT   ;SEE WHO IT IS
 .3S     LDB     #$34    ;FLIP TO THE COCKTAIL SIDE
-        STB     PIA31
-        LDA     PIA20    ;GET THE REST OF THEM
+        STB     PIA_ControlB
+        LDA     PIA_InputA    ;GET THE REST OF THEM
         ANDA    #$03    ;WE ONLY WANT BITS 0&1 (THIS IS FOR JOUST)
         BEQ     .2S     ;BRA=NO
         JSR     CSWIT1  ;SEE WHO THEY ARE
 .2S     LDB     #$3C    ;SET BACK TO THE NORMAL SIDE
-        STB     PIA31
+        STB     PIA_ControlB
         JSR     AVCHK   ;CHECK TO SEE IF THE ADVANCE SWITCH HAS BEEN PRESSED
         BCC     .1S     ;NOT EVEN AN ADVANCE SO LETS CHECK THEM AGAIN
         JSR     AVWAIT
@@ -1524,11 +1524,11 @@ CSWIT   STA     SW3ST   ;SAVE THE SWITCH
         STA     SW2ST   ;SAVE THE SWITCH
         LDA     #$2     ;       NAP ONLY 16 MS
         JSR     JNAP    ;AND TAKE A CAT NAP
-        LDA     PIA20    ;READ THE PORT TO MAKE SURE THAT IT IS VALID
+        LDA     PIA_InputA    ;READ THE PORT TO MAKE SURE THAT IT IS VALID
         BNE     .3S
 .1S     LDB     #$05    ;TIME TO WAIT
         STB     SW3SCN  ;SAVE IT
-.5S     LDA     PIA20    ;READ THE PORT
+.5S     LDA     PIA_InputA    ;READ THE PORT
         BNE     .2S     ;BRA= STILL PRESSED
         CLR     SW2ST   ;SAY THAT NO SWITCH HAS BEEN PRESSED
         RTS             ;TOO BAD YOU LET GO
@@ -1536,7 +1536,7 @@ CSWIT   STA     SW3ST   ;SAVE THE SWITCH
         JSR     JNAP    ;AND TAKE A CAT NAP
         DEC     SW3SCN  ;ONE LESS TIME
         BNE     .5S     ;NOT DONE SO CHECK AGAIN
-        LDA     PIA20    ;READ ONCE AGAIN
+        LDA     PIA_InputA    ;READ ONCE AGAIN
 
 .3S     BITA    #$02    ;DID HE PRESS MOVE LEFT
         BNE     .4S     ;BRA= YES HE DID SO MOVE THE CURSOR UP
@@ -1588,11 +1588,11 @@ CSWIT1  STA     SW3ST   ;SAVE THE SWITCH
         STA     SW2STI  ;SAVE THE SWITCH
         LDA     #$2     ;       NAP ONLY 16 MS
         JSR     JNAP    ;AND TAKE A CAT NAP
-        LDA     PIA20    ;READ THE PORT TO MAKE SURE THAT IT IS VALID
+        LDA     PIA_InputA    ;READ THE PORT TO MAKE SURE THAT IT IS VALID
         BNE     .3S
 .1S     LDB     #$08    ;TIME TO WAIT
         STB     SW3SCI  ;SAVE IT
-.5S     LDA     PIA20    ;READ THE PORT
+.5S     LDA     PIA_InputA    ;READ THE PORT
         BNE     .2S     ;BRA= STILL PRESSED
         CLR     SW2SCI  ;SAY THAT NO SWITCH HAS BEEN PRESSED
         RTS             ;TOO BAD YOU LET GO
@@ -1600,7 +1600,7 @@ CSWIT1  STA     SW3ST   ;SAVE THE SWITCH
         JSR     JNAP    ;AND TAKE A CAT NAP
         DEC     SW3SCI  ;ONE LESS TIME
         BNE     .5S     ;NOT DONE SO CHECK AGAIN
-        LDA     PIA20    ;READ ONCE AGAIN
+        LDA     PIA_InputA    ;READ ONCE AGAIN
 
 .3S     PSHS    A
         TFR     U,X     ;GET THE CMOS LOCATION
@@ -1932,21 +1932,21 @@ RAND    PSHS    B
 IRQVector  JMP     [IRQHandlerPointer]
 
 
-CYCLE   LDA     #PRAM
+CYCLE   LDA     #ProcessRam
         LDX     #CLRTAB
         LDB     0,X
         STB     PIMAGE,U
 .1S     LDB     ,X+
         STB     A,U
         INCA
-        CMPA    #PRAM+8
+        CMPA    #ProcessRam+8
         BNE     .1S
         CLRA
         STA     PTIMX,U
-        LEAY    PRAM+7,U
+        LEAY    ProcessRam+7,U
         STY     PDIST,U
 .2S     PCNAP   4
-        LDB     #PRAM
+        LDB     #ProcessRam
         ADDB    PTIMX,U
         LDA     PIMAGE,U
         STA     B,U
@@ -1957,7 +1957,7 @@ CYCLE   LDA     #PRAM
         CLRA
 .4S     CMPA    #$04
         BNE     .7S
-        LEAX    PRAM,U
+        LEAX    ProcessRam,U
         LDB     ,X+
         PSHS    B
 .6S     LDB     ,X+
@@ -1967,13 +1967,13 @@ CYCLE   LDA     #PRAM
         PULS    B
         STB     -1,X
 .7S     STA     PTIMX,U
-        ADDA    #PRAM
+        ADDA    #ProcessRam
         LDB     A,U
         STB     PIMAGE,U
         LDB     #$E8
         STB     A,U
         LDX     #RAMCOL+8
-        LEAY    PRAM,U
+        LEAY    ProcessRam,U
 .3S     LDA     ,Y+
         STA     ,X+
         CMPX    #RAMCOL+15

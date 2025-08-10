@@ -1191,8 +1191,8 @@ ENTINT  CLRA
         LDA     B,Y
         JSR     WRCUR   ;WRITE THE CURSOR
         LDB     SIDE,Y  ;GET THE CONTROL BYTE TO SEND TO THE WIDGET             ;;Fixme was: LDB  .SIDE,Y
-        STB     PIA31  ;AND GIVE IT TO IT
-        LDB     PIA20    ;READ THE SWITCH INPUTS
+        STB     PIA_ControlB  ;AND GIVE IT TO IT
+        LDB     PIA_InputA    ;READ THE SWITCH INPUTS
         ANDB    #$07    ;WE ONLY WANT 'MOVE LEFT','MOVE RIGHT','FALP'
         BNE     .40S    ;BRA= SWITCHES HAVE BEEN PRESSED
         LDB     DEBONC,Y                                                        ;;Fixme was: LDB  .DEBONC,Y
@@ -1206,9 +1206,9 @@ ENTINT  CLRA
 
 ENTI2   PSHS    B
         LDB     SIDE,Y                                                          ;;Fixme was: LDB  .SIDE,Y
-        STB     PIA31
+        STB     PIA_ControlB
         PULS    B
-        CMPB    PIA20    ;IS THE SAME SWITCH STILL PRESSED
+        CMPB    PIA_InputA    ;IS THE SAME SWITCH STILL PRESSED
         BNE     ENTRET  ;BRA= NO SO IT'S PROBBALY NOISE RETURN TO THE CALLER
         LSRB            ;SHIFT IT BECAUSE IF IT'S BIT 0 THEN IT WILL NOW BE 0
         BNE     .2S     ;BRA= IT'S NOT THIS SWITCH
@@ -1441,10 +1441,10 @@ LTRT    LDA     PIA00
         BEQ     .3S
         LEAS    2,S     ;GET RID OF THE RETURN ADDRESS
         JMP     ,U
-.3S     LDA     PIA20    ;READ THE SWITCH                                        ;;Fixme was: 3$
+.3S     LDA     PIA_InputA    ;READ THE SWITCH                                        ;;Fixme was: 3$
         ANDA    #$03    ;ONLY NEED LEFT OR RIGHT
         JSR     WAIT
-        CMPA    PIA20    ;IS THE SAME SWITCH STILL PRESSED
+        CMPA    PIA_InputA    ;IS THE SAME SWITCH STILL PRESSED
         BNE     LTRT
         TSTA
         BEQ     LTRT

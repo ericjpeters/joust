@@ -19,12 +19,12 @@
 ;									Each byte defines a palette color in the format BBGGGRRR (2 bits Blue, 3 bits Green, 3 bits Red),
 ;									supporting a 16-color palette for the display.
 ;
-;		$C804 ? $C807				Peripheral Interface Adapter (PIA) ? Input. One Motorola 6821 PIA is mapped here. It handles inputs from 
+;		PIA_InputA ? PIA_ControlB				Peripheral Interface Adapter (PIA) ? Input. One Motorola 6821 PIA is mapped here. It handles inputs from 
 ;									the cabinet (joysticks, buttons, coin switches) and possibly outputs to coin counters or control lamps. 
 ;									The PIA?s ports are configured for reading player controls and DIP switch settings, and for driving any 
 ;									associated output lines.
 ;
-;		$C80C ? $C80F				PIA ? Sound interface. A second 6821 PIA at this address is used for communication with the dedicated sound 
+;		PIA00 ? PIA11				PIA ? Sound interface. A second 6821 PIA at this address is used for communication with the dedicated sound 
 ;									board.  The main CPU writes a sound command (sound effect ID number) to one of this PIA?s ports, and uses 
 ;									a control line (via the PIA) to trigger an interrupt on the sound CPU. This PIA also allows the main CPU 
 ;									to receive handshake/status signals from the sound board if needed (e.g. an acknowledgment interrupt).
@@ -287,6 +287,8 @@ ScratchRam                      EQU     $BC00
 CmosRam							EQU     $CC00
 
 WritableCmosRam					EQU     $CD00
+
+PatchesStartAddr				EQU		$D760
 
 SystemVectors                   EQU     $E000
 SystemVectorsEnd                EQU     $E694; was $E697
