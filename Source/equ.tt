@@ -30,7 +30,7 @@ WatchdogData   EQU     $39     ;AND WHAT TO FEED HIM
 AEND    EQU     $1620
 ATOP    EQU     $16CA
 CMOS    EQU     $CC00   ;CMOS MEMORY
-SOUND   EQU     PIA10   ;SOUND SIDE OF PIA
+SOUND   EQU     PIA_Sound   ;SOUND SIDE OF PIA
 RED     EQU     $55
 GREEN   EQU     $77
 VERTCT  EQU     $CB00   ;6-BIT VERTICAL BEAM ADDR
@@ -59,7 +59,7 @@ PIA01                   EQU         $C80D       ; A. SIDE OF THE COIN DOOR PIA
 PIA01_Unknown           EQU         $34         ; Not sure what this is.
 PIA01_LED3              EQU         $08         ; LED3 is bit 3 of PIA01, which is CA2
 
-PIA10                   EQU         $C80E       ; B. SIDE OF THE COIN DOOR PIA
+PIA_Sound                   EQU         $C80E       ; B. SIDE OF THE COIN DOOR PIA
                                                 ; * B0-B5 SOUND
                                                 ; * B6-B7 LED 0,1
 

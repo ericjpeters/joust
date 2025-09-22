@@ -91,13 +91,13 @@ INIT2   LDA     #$A0            ;SET-UP BASE PAGE                               
         STA     PIA11
         STA     PIA00            ;INPUTS
         COMA
-        STA     PIA10            ;OUTPUTS
+        STA     PIA_Sound            ;OUTPUTS
         LDB     #%00110100      ;IGNORE CNT240 INTERUPT
         STB     PIA01
         LDB     #%00110101      ;BUT ENABLE PIA'S 4MS INTERUPT LOW-HIGH EDGE
         STB     PIA11
         LDB     #$3F            ;INHIBIT 1ST SOUND
-        STB     PIA10            ; (AND MAKE 7-SEGMENT DISPLAY A ZERO)
+        STB     PIA_Sound            ; (AND MAKE 7-SEGMENT DISPLAY A ZERO)
 ;*
 ;*      CLOSE COINS SWITCHES VIA SOFTWARE (WHO KNOWS WHAT
 ;*
@@ -184,9 +184,9 @@ EXEINT  TST     ,X              ;IS THIS TABLE READY TO BE WRITTEN INTO?
 .1S     STX     SNDPTR
         STB     STMR
         LDB     #$FF            ;SEND THE SOUND TO THE SOUND BOARD
-        STB     PIA10
+        STB     PIA_Sound
         ANDA    #$3F            ;DO NOT DISTURBE 7-SEGMENT DISPLAY
-        STA     PIA10
+        STA     PIA_Sound
 EXESND  EQU     *
 ;*
         CLRA                    ;NOW RESET FORGROUNDS CLEAR & WRITE POINTERS
@@ -585,7 +585,7 @@ IRQ     STS     IRQSTK          ;REMEMBER STACK POINTER (NO DCON FROM NOW ON!)
         LDA     DRRUC           ;DMA READS ROM!
         ORA     #1
         STA     RRUC
-        LDB     PIA10            ;CLEAR 4MS
+        LDB     PIA_Sound            ;CLEAR 4MS
         LDB     VSCAN
         ANDB    #$C0            ;SHOW ONLY VALID INTERUPT BITS
         LBNE    IRQ2            ;UPDATE COLOR RAM ON VERTICAL LINE 0
@@ -706,7 +706,7 @@ IRQNXT  STA     >ISQCNT
         LEAX    0,U             ;ANY DATA TO MOVE?
         BEQ     IRQSKD          ; BR=NO, SO SKIP THE DMA OPERATION
         DEC     >PIA11          ;DISABLE PIA INTERUPTS (PLAYING WITH CC)
-        LDA     PIA10            ;CLEAR 4MS INTERUPT, JUST IN CASE...
+        LDA     PIA_Sound            ;CLEAR 4MS INTERUPT, JUST IN CASE...
 IRQDMA  LDS     #DMA+8          ;START/RESTART DMA LOOPING
         PULU    CC,D,DP,X,Y
         PSHS    CC,D,DP,X,Y     ;DMA OPERATION STARTED & COMPLETED

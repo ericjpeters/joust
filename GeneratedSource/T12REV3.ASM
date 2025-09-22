@@ -55,13 +55,13 @@ PowerUpHandler
         CLR     PIA00                                                                           ; PIA00 = $00 $00
         LDA     #PIA01_Unknown + PIA01_LED3 ;SET LED 3 TO 1 (WE'RE MAKING AN F TO BLANK)        ; A = #$3C (%0011 1100)
         STA     PIA01                                                                           ; PIA00 = $00 $3C
-        CLR     PIA11                                                                           ; PIA10 = ?? $00
+        CLR     PIA11                                                                           ; PIA_Sound = ?? $00
         LDA     #$C0                        ;BITS 6,7 TO OUTPUTS (LEDS)                         ; A = #$C0 (%1100 0000)
-        STA     PIA10                                                                           ; PIA10 = $C0 $00
+        STA     PIA_Sound                                                                           ; PIA_Sound = $C0 $00
         LDA     #$3C                        ;SET BIT 2 TO 1                                     ; A = #$3C (%0011 1100)
-        STA     PIA11                       ;CLEAR CB2 (LED)                                    ; PIA10 = $C0 $3C
+        STA     PIA11                       ;CLEAR CB2 (LED)                                    ; PIA_Sound = $C0 $3C
         LDA     #$C0                        ;CLEAR LEDS                                         ; A = #$C0
-        STA     PIA10                       ;SET BITS 0,1                                       ; PIA10 = $C0 $3C
+        STA     PIA_Sound                       ;SET BITS 0,1                                       ; PIA_Sound = $C0 $3C
         LDA     #1                                                                              ; A = #1
         STA     RWCNTL                      ;MAKE SURE WE COPY FROM ROM!                        ; RWCNTL = #1 (ROM READ / NORMAL SCREEN)
         LDX     #ColorRamTable                                                                  ; X = Color RAM Table pointer
@@ -89,7 +89,7 @@ PowerUp_IndicateSuccess
         LDA     #PIA01_Unknown              ;PUT A ZERO IN THE LED.                             ; A = #$34 (%0011 0100)
         STA     PIA01
         STA     PIA11
-        CLR     PIA10
+        CLR     PIA_Sound
         LDA     #RAM>>8                                                         ;;Fixme was: LDA  #RAM!>8
         TFR     A,DP
         LDS     #HSTK
@@ -338,7 +338,7 @@ BLKLED  LDA     #$3C
         INCA
         STA     PIA11
         LDA     #$C0
-        STA     PIA10
+        STA     PIA_Sound
         JMP     ,Y      ;AND RETURN
 
 ;*      PSSUB - PUT LOW HALF OF A TO LEDS
@@ -348,7 +348,7 @@ PSSUB   TFR     A,B     ;SAVE A COPY.
         RORA            ;BIT 0 - BIT 7
         RORA            ;BIT 0 - BIT 6
         ANDA    #$C0
-        STA     PIA10    ;THOSE BITS OUT.
+        STA     PIA_Sound    ;THOSE BITS OUT.
         LDA     #$34    ;ASSUME ZERO
         BITB    #$4     ;SEE IF 1
         BEQ     PSSUB1  ;NOPE
@@ -602,7 +602,7 @@ EJP_DisplayLivesModHook
         JSR     AVWAIT  ;WAIT FOR LET GO TIME.
 DIAG78  BRA     TSTPAT  ;DO SOME TEST PATTERNS  THEN GO TO BOOK.
 
-ZLED    CLR     PIA10    ;ZERO IN LED INDICATES ON LAST TEST OR DUN
+ZLED    CLR     PIA_Sound    ;ZERO IN LED INDICATES ON LAST TEST OR DUN
         LDA     #$34
         STA     PIA01
         INCA

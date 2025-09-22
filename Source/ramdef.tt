@@ -130,13 +130,13 @@ VSCAN   EQU     $CB00   ;VERTCAL SCAN COUNT
 
 ;WPIA00   EQU     $C804   ;A INPUT                WIDGET-BRD INPUTS;
 ;WPIA01  EQU     $C805   ;A CONTROL      GAME CNTRLS, PLYR1 AND 2 STARTS
-;WPIA10   EQU     $C806   ;B INPUT
+;WPIA_Sound   EQU     $C806   ;B INPUT
 ;WPIA11  EQU     $C807   ;B CONTROL
 
 ;PIAA    EQU     $C80C   ;COIN DOOR,INTERRUPT,SOUND BRD PIA'S
 ;CPIA00   EQU     $C80D   ;16MS CONTROL - CA1
 ;PIAB    EQU     $C80E   ;SOUND BOARD OUTPUTS
-;CPIA10   EQU     $C80F   ;4MS CONTROL - CB1      B0=1 ENABLE  B0=0 DISABLE
+;CPIA_Sound   EQU     $C80F   ;4MS CONTROL - CB1      B0=1 ENABLE  B0=0 DISABLE
 
 ;*WatchdogTimer  EQU     $CBFF   ;WATCHDOG CIRCUIT
 
@@ -168,61 +168,66 @@ WCLENY  RMB     1       ;WRITE/CLEAR'S DMA Y LENGTH (NO INVERSION)
 ;*S-SLOW FOR RAM
 ;*W-WRITE       BLOCK
 ;*R-READ        BLOCK
+
+;******************************************************************************
 ;*
 ;*      SYSTEM OVERHEAD EQUATES
 ;*
-PBLKM   EQU     40      ;NUMBER OF MAXIMUM PROCESSES THAT CAN EXIST
+;******************************************************************************
+                    ORG     $0                                                  ;PROCESS BLOCK OFFSETS
+PBLKM               EQU     40                                                  ;NUMBER OF MAXIMUM PROCESSES THAT CAN EXIST
+PLINK               RMB     2                                                   ;PROCESS OVERHEAD, LINK TO NXT PROC (IF=0 END LINK)
+PID                 RMB     1                                                   ;   "      "      I.D. NBR (IF=0 NO PROCESS)
+PPRI                RMB     1                                                   ;   "       "     START LINK OF OBJECT(S) BLOCK
+PNAP                RMB     1                                                   ;   "      "      SLEEP TIME IF<>0
+PPC                 RMB     2                                                   ;   "      "      PROCESSES PC COUNTER
+PPOSX               RMB     3                                                   ;PROCESS'S OBJECT X LOCATION (AND FRACTIONAL DISTANCE)
+PPOSY               RMB     3                                                   ;PROCESS'S OBJECT Y LOCATION (AND FRACTIONAL DISTANCE)
+ProcessRamLength    EQU     43                                                  ;NUMBER OF PROCESSES RAM BYTES
+ProcessRam          RMB     ProcessRamLength                                    ;PROCESSES  EXCLUSIVE RAM
+                                                                                ;* RAM 0, HI BYTE OF REG.Y (AT CREATION TIME)
+                                                                                ;* RAM 1, LO BYTE OF REG.Y (AT CREATION TIME)
+                                                                                ;* RAM 2, BYTE OF REG.B (AT CREATION TIME)
+PBLKL               EQU     *                                                   ;8 OVERHEAD BYTES + PROCESSES EXCLUSIVE RAM
 
-        ORG     $0      ;PROCESS BLOCK OFFSETS
-PLINK   RMB     2       ;PROCESS OVERHEAD, LINK TO NXT PROC (IF=0 END LINK)
-PID     RMB     1       ;   "      "      I.D. NBR (IF=0 NO PROCESS)
-PPRI    RMB     1       ;   "       "     START LINK OF OBJECT(S) BLOCK
-PNAP    RMB     1       ;   "      "      SLEEP TIME IF<>0
-PPC     RMB     2       ;   "      "      PROCESSES PC COUNTER
-PPOSX   RMB     3       ;PROCESS'S OBJECT X LOCATION (AND FRACTIONAL DISTANCE)
-PPOSY   RMB     3       ;PROCESS'S OBJECT Y LOCATION (AND FRACTIONAL DISTANCE)
-ProcessRamLength   EQU     43      ;NUMBER OF PROCESSES RAM BYTES
-ProcessRam    RMB     ProcessRamLength   ;PROCESSES  EXCLUSIVE RAM
-;*                              RAM 0, HI BYTE OF REG.Y (AT CREATION TIME)
-;*                              RAM 1, LO BYTE OF REG.Y (AT CREATION TIME)
-;*                              RAM 2, BYTE OF REG.B (AT CREATION TIME)
-
-PBLKL   EQU     *               ;8 OVERHEAD BYTES + PROCESSES EXCLUSIVE RAM
+;******************************************************************************
 ;*
 ;*      JOUST OFFSETS
 ;*
-            ORG     ProcessRam            ; NEW OFFSETS FROM PROCESSES RAM
-PDECSN      RMB     2               ; JOYSTICK,SCORE, AND OTHER DECISION AREA
-PFACE       RMB     1               ; 0=RIGHT FACED, <>0=LEFT FACE
-PFRAME      RMB     1               ; MAJOR FRAME ANIMATION NUMBER
-PVELY       RMB     2               ; FACTIONAL SIGNED VELOCITY Y-DIRECTION
-PTIMUP      RMB     1               ; TIME BETWEEN WING FLAPS
-PVELX       RMB     1               ; TABLE LOOK-UP FLYING VELOCITY-X
-PACCX       RMB     1               ; LAND'S ACCELERATION RATE
-PTIMX       RMB     1               ; LAND'S TIME TILL NEXT FRAME
-PIMAGE      RMB     1               ; PICTURES FRAME NUMBER
-PHORSE      RMB     2               ; START ANIMATION OF HORSE(OSTRICH)
-PRIDER      RMB     2               ; START ANIMATION OF RIDER
-PPICH       RMB     2               ; PROCESSES LAST/CURRENT HORSE IMAGE PICTURE
-PPICR       RMB     2               ; PROCESSES LAST/CURRENT RIDER IMAGE PICTURE
-PSTATE      RMB     2               ; STATE OF PLAYER'S GROUND MOVEMENT (ADDRESS)
-PBUMPX      RMB     1               ; BUMPING DELTA X
-PBUMPY      RMB     1               ; BUMP REGISTER IN Y DIRECTION
-PJOY        RMB     2               ; JOYSTICK SERVICE ROUTINE
-PLANTZ      RMB     1               ; LANTZ OFFSET FOR SKIDDING
-PCOLY1      RMB     1               ; COLISION DETECTS BOTTOM LINE OF ROUGH BOX
-PCOLY2      RMB     1               ; COLISION DETECTS TOP LINE OF ROUGH BOX
-PCOLX       RMB     2               ; COLISION DETECT RIGHT HAND SIDE OF COLISION
-PDIST       RMB     2               ; ENEMY TRAGET DISTANCES (FOR EMEMY TRACKING)
-PJOYT       RMB     1               ; FLIP/FLAP TIMES (FOR EMEMY TRACKING)
-PRDIR       RMB     1               ; REVERSE DIRECTION COUNTER (FOR EMEMY TRACKING)
-PPVELX      RMB     1               ; OLD PLAYERS X VELOCITY (FOR EMEMY TRACKING)
-PADGRA      RMB     2               ; ADD GRAVITY ROUTINE (FLYING & LAVA TROLLS)
-PLAVT       RMB     1               ; LAVA TROLL LOOKING TIME (FOR ENEMY TRACKING)
-PEGG        RMB     1               ; EMEMIES NBR OF EGGS LEFT BEFORE TOTAL DEATH
-PCHASE      RMB     1               ; ENEMIES CHASE (=1) OR NON-CHASE (=0) FLAG
-PFEET       RMB     1               ; L.S.BIT INDICATES WHICH FOOT HORSE IS ON.
-PNBR        EQU     *               ; NUMBER OF PROCESS RAM LOCATIONS
+;******************************************************************************
+                    ORG     ProcessRam                                          ; NEW OFFSETS FROM PROCESSES RAM
+PDECSN              RMB     2                                                   ; JOYSTICK,SCORE, AND OTHER DECISION AREA
+PFACE               RMB     1                                                   ; 0=RIGHT FACED, <>0=LEFT FACE
+PFRAME              RMB     1                                                   ; MAJOR FRAME ANIMATION NUMBER
+PVELY               RMB     2                                                   ; FACTIONAL SIGNED VELOCITY Y-DIRECTION
+PTIMUP              RMB     1                                                   ; TIME BETWEEN WING FLAPS
+PVELX               RMB     1                                                   ; TABLE LOOK-UP FLYING VELOCITY-X
+PACCX               RMB     1                                                   ; LAND'S ACCELERATION RATE
+PTIMX               RMB     1                                                   ; LAND'S TIME TILL NEXT FRAME
+PIMAGE              RMB     1                                                   ; PICTURES FRAME NUMBER
+PHORSE              RMB     2                                                   ; START ANIMATION OF HORSE(OSTRICH)
+PRIDER              RMB     2                                                   ; START ANIMATION OF RIDER
+PPICH               RMB     2                                                   ; PROCESSES LAST/CURRENT HORSE IMAGE PICTURE
+PPICR               RMB     2                                                   ; PROCESSES LAST/CURRENT RIDER IMAGE PICTURE
+PSTATE              RMB     2                                                   ; STATE OF PLAYER'S GROUND MOVEMENT (ADDRESS)
+PBUMPX              RMB     1                                                   ; BUMPING DELTA X
+PBUMPY              RMB     1                                                   ; BUMP REGISTER IN Y DIRECTION
+PJOY                RMB     2                                                   ; JOYSTICK SERVICE ROUTINE
+PLANTZ              RMB     1                                                   ; LANTZ OFFSET FOR SKIDDING
+PCOLY1              RMB     1                                                   ; COLISION DETECTS BOTTOM LINE OF ROUGH BOX
+PCOLY2              RMB     1                                                   ; COLISION DETECTS TOP LINE OF ROUGH BOX
+PCOLX               RMB     2                                                   ; COLISION DETECT RIGHT HAND SIDE OF COLISION
+PDIST               RMB     2                                                   ; ENEMY TRAGET DISTANCES (FOR EMEMY TRACKING)
+PJOYT               RMB     1                                                   ; FLIP/FLAP TIMES (FOR EMEMY TRACKING)
+PRDIR               RMB     1                                                   ; REVERSE DIRECTION COUNTER (FOR EMEMY TRACKING)
+PPVELX              RMB     1                                                   ; OLD PLAYERS X VELOCITY (FOR EMEMY TRACKING)
+PADGRA              RMB     2                                                   ; ADD GRAVITY ROUTINE (FLYING & LAVA TROLLS)
+PLAVT               RMB     1                                                   ; LAVA TROLL LOOKING TIME (FOR ENEMY TRACKING)
+PEGG                RMB     1                                                   ; EMEMIES NBR OF EGGS LEFT BEFORE TOTAL DEATH
+PCHASE              RMB     1                                                   ; ENEMIES CHASE (=1) OR NON-CHASE (=0) FLAG
+PFEET               RMB     1                                                   ; L.S.BIT INDICATES WHICH FOOT HORSE IS ON.
+PNBR                EQU     *                                                   ; NUMBER OF PROCESS RAM LOCATIONS
+
 
 ; not sure what this is really checking.   It doesn't jive with other places where we check address,
 ; nor does it seem to match other places where we check the address of PNBR
